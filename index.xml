@@ -1,0 +1,86 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>首页 on 首页</title>
+    <link>https://candoeverything.github.io/</link>
+    <description>Recent content in 首页 on 首页</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zk-CN</language>
+    <lastBuildDate>Wed, 17 Jul 2019 12:47:15 +0800</lastBuildDate>
+    <atom:link href="/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Flume简单概述</title>
+      <link>https://candoeverything.github.io/2019/blog/</link>
+      <pubDate>Wed, 17 Jul 2019 12:47:15 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/blog/</guid>
+      <description>
+
+&lt;h3 id=&#34;1-flume的概念&#34;&gt;1.Flume的概念&lt;/h3&gt;
+
+&lt;h3 id=&#34;2-flume的作用和用途&#34;&gt;2.Flume的作用和用途&lt;/h3&gt;
+
+&lt;h3 id=&#34;3-flume的组成架构&#34;&gt;3.Flume的组成架构&lt;/h3&gt;
+
+&lt;h3 id=&#34;4-flume的事务&#34;&gt;4.Flume的事务&lt;/h3&gt;
+
+&lt;h1 id=&#34;1-1-什么是flume&#34;&gt;1.1 什么是Flume？&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code&gt;定义：Flume是一个高可用，分布式的海量日志采集系统。
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;2-1flume的的作用是什么&#34;&gt;2.1Flume的的作用是什么？&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code&gt;Flume的作用：实时的监控某个某个文件夹或者文件内数据的变化，然后再将变化的数据传输到目的源存储或者分析处理。
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;2-2flume的企业中主要用途&#34;&gt;2.2Flume的企业中主要用途&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code&gt;    实时的读取服务器产生的日志数据或者爬虫爬爬取的数据，然后传输到指定目的源处理。
+    一般flume下端都会与kafka搭配，这样可以指定数据到多个目的地。（例如数据传输到hdfs进行备份，同时也传输给spark进行实时的分析数据等等。。）
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;flume.png&#34; alt=&#34;markdown&#34; title=&#34;markdown&#34; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;3-1flume的组成架构&#34;&gt;3.1Flume的组成架构&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code&gt;Flume的工作基本单元是Agent，agent是一个jvm进程，它是将数据包装成事件event从数据源传输到目的源。
+Agent有三个组件组成：                                                                1.Source：从数据源拉取数据，通过put事务将数据传输给channel。
+2.Channel：作为Source和Sink的数据的缓存区。
+3.Sink：拉取缓存在channel的数据，然后传输给下一个目的源。
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;1.png&#34; alt=&#34;markdown&#34; title=&#34;markdown&#34; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;4-1flume的事务&#34;&gt;4.1Flume的事务&lt;/h1&gt;
+
+&lt;h4 id=&#34;put事务&#34;&gt;Put事务&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;putlist：是一个临时缓冲区，用于缓存数据。
+doPut：将数据缓存到临时缓存区putlist。
+doCommit：检查channel内存是否足够。若是足够，将数据写入到channel。若是不够，则执行dorollback。
+doRollBack：当channel内存不够时候，将数据回滚，保证了数据安全性。
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;take事务&#34;&gt;Take事务&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;takelist：是一个临时缓冲区，用于缓存数据。
+doTake：将channel的数据缓存到临时缓冲区takelist，并删掉channel内的数据。
+doCommit：检查数据是否全部成功传输到下一个目的源。若全部传输成功，则删除掉takelist缓存的数据。
+doRollBack：若是传输过程中出现故障，数据没能全部传输成功，则将takelist内的数据回滚给channel。
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>&gt;</title>
+      <link>https://candoeverything.github.io/about/</link>
+      <pubDate>Tue, 09 Apr 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://candoeverything.github.io/about/</guid>
+      <description>&lt;p&gt;&lt;img src=&#34;https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=2239322943,1333922446&amp;amp;fm=173&amp;amp;s=E08BB0575C4152D6C00D1CF70300E068&amp;amp;w=393&amp;amp;h=292&amp;amp;img.JPEG&#34; alt=&#34;markdown&#34; title=&#34;markdown&#34; /&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

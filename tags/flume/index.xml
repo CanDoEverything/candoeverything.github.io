@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Flume on 首页</title>
+    <link>https://candoeverything.github.io/tags/flume/</link>
+    <description>Recent content in Flume on 首页</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zk-CN</language>
+    <lastBuildDate>Wed, 17 Jul 2019 12:47:15 +0800</lastBuildDate>
+    
+	<atom:link href="https://candoeverything.github.io/tags/flume/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Flume简单概述</title>
+      <link>https://candoeverything.github.io/2019/blog/</link>
+      <pubDate>Wed, 17 Jul 2019 12:47:15 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/blog/</guid>
+      <description> 1.Flume的概念 2.Flume的作用和用途 3.Flume的组成架构 4.Flume的事务 1.1 什么是Flume？ 定义：Flume是一个高可用，分布式的海量日志采集系统。  2.1Flume的的作用是什么？ Flume的作用：实时的监控某个某个文件夹或者文件内数据的变化，然后再将变化的数据传输到目的源存储或者分析处理。  2.2Flume的企业中主要用途  实时的读取服务器产生的日志数据或者爬虫爬爬取的数据，然后传输到指定目的源处理。 一般flume下端都会与kafka搭配，这样可以指定数据到多个目的地。（例如数据传输到hdfs进行备份，同时也传输给spark进行实时的分析数据等等。。）  3.1Flume的组成架构 Flume的工作基本单元是Agent，agent是一个jvm进程，它是将数据包装成事件event从数据源传输到目的源。 Agent有三个组件组成： 1.Source：从数据源拉取数据，通过put事务将数据传输给channel。 2.Channel：作为Source和Sink的数据的缓存区。 3.Sink：拉取缓存在channel的数据，然后传输给下一个目的源。  4.1Flume的事务 Put事务 putlist：是一个临时缓冲区，用于缓存数据。 doPut：将数据缓存到临时缓存区putlist。 doCommit：检查channel内存是否足够。若是足够，将数据写入到channel。若是不够，则执行dorollback。 doRollBack：当channel内存不够时候，将数据回滚，保证了数据安全性。  Take事务 takelist：是一个临时缓冲区，用于缓存数据。 doTake：将channel的数据缓存到临时缓冲区takelist，并删掉channel内的数据。 doCommit：检查数据是否全部成功传输到下一个目的源。若全部传输成功，则删除掉takelist缓存的数据。 doRollBack：若是传输过程中出现故障，数据没能全部传输成功，则将takelist内的数据回滚给channel。  </description>
+    </item>
+    
+  </channel>
+</rss>
