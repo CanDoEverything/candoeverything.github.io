@@ -21,5 +21,15 @@
 //更新本地代码以远端仓库一致 hugo &amp;ndash;theme=LeaveIt &amp;ndash;baseUrl=&amp;ldquo;https://candoeverything.github.io/&amp;quot; &amp;ndash;buildDrafts cd public git add . git commit -m &amp;ldquo;XXXXXXX&amp;rdquo; git pull origin master git push origin master</description>
     </item>
     
+    <item>
+      <title>更新本地代码上传带git</title>
+      <link>https://candoeverything.github.io/2019/upload/</link>
+      <pubDate>Wed, 17 Jul 2019 22:54:09 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/upload/</guid>
+      <description>//新建一个文件 hugo new post/upload.md
+//更新本地代码以远端仓库一致 hugo &amp;ndash;theme=LeaveIt &amp;ndash;baseUrl=&amp;ldquo;https://candoeverything.github.io/&amp;quot; &amp;ndash;buildDrafts cd public git add . git commit -m &amp;ldquo;XXXXXXX&amp;rdquo; git pull origin master git push origin master</description>
+    </item>
+    
   </channel>
 </rss>
