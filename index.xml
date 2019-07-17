@@ -5,8 +5,27 @@
     <description>Recent content in 首页 on 首页</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zk-CN</language>
-    <lastBuildDate>Wed, 17 Jul 2019 12:47:15 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 17 Jul 2019 22:54:09 +0800</lastBuildDate>
     <atom:link href="/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>更新本地代码上传带git</title>
+      <link>https://candoeverything.github.io/post/upload/</link>
+      <pubDate>Wed, 17 Jul 2019 22:54:09 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/post/upload/</guid>
+      <description>&lt;p&gt;//新建一个文件
+hugo new post/upload.md&lt;/p&gt;
+
+&lt;p&gt;//更新本地代码以远端仓库一致
+hugo &amp;ndash;theme=LeaveIt &amp;ndash;baseUrl=&amp;ldquo;&lt;a href=&#34;https://candoeverything.github.io/&amp;quot;&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;https://candoeverything.github.io/&amp;quot;&lt;/a&gt; &amp;ndash;buildDrafts
+cd public
+git add .
+git commit -m &amp;ldquo;XXXXXXX&amp;rdquo;
+git pull origin master
+git push origin master&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Flume简单概述</title>
