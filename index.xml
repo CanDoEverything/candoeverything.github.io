@@ -140,7 +140,7 @@ Agent有三个组件组成：                                                   
 3.Sink：拉取缓存在channel的数据，然后传输给下一个目的源。
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;&lt;img src=&#34;https://github.com/CanDoEverything/candoeverything.github.io/blob/master/posts/1.PNG?raw=true&#34; alt=&#34;markdown&#34; title=&#34;markdown&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/CanDoEverything/candoeverything.github.io/master/posts/1.PNG&#34; alt=&#34;markdown&#34; title=&#34;markdown&#34; /&gt;&lt;/p&gt;
 
 &lt;h1 id=&#34;4-1flume的事务&#34;&gt;4.1Flume的事务&lt;/h1&gt;
 
