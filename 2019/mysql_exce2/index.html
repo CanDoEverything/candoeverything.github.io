@@ -9,9 +9,9 @@
   
   
   
-  <link rel="prev" href="https://candoeverything.github.io/2019/blog/" />
-  <link rel="next" href="https://candoeverything.github.io/2019/mysql_exce1/" />
-  <link rel="canonical" href="https://candoeverything.github.io/2019/upload/" />
+  <link rel="prev" href="https://candoeverything.github.io/2019/mysql_exce1/" />
+  
+  <link rel="canonical" href="https://candoeverything.github.io/2019/mysql_exce2/" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -22,10 +22,10 @@
   <title>
        
        
-           更新本地代码上传带git | 首页
+           MySQL异常：You can&#39;t specify target table for update in FROM clause解决办法 | 首页
        
   </title>
-  <meta name="title" content="更新本地代码上传带git | 首页">
+  <meta name="title" content="MySQL异常：You can&#39;t specify target table for update in FROM clause解决办法 | 首页">
     
   
   <link rel="stylesheet" href="/font/iconfont.css">
@@ -44,9 +44,9 @@
          "@id": "https:\/\/candoeverything.github.io\/"
     },
     "articleSection" : "posts",
-    "name" : "更新本地代码上传带git",
-    "headline" : "更新本地代码上传带git",
-    "description" : "\/\/新建一个文件 hugo new post\/upload.md\n\/\/更新本地代码以远端仓库一致 hugo \x26ndash;theme=LeaveIt \x26ndash;baseUrl=\x26ldquo;https:\/\/candoeverything.github.io\/\x26quot; \x26ndash;buildDrafts cd public git add . git commit -m \x26ldquo;XXXXXXX\x26rdquo; git pull origin master git push origin master",
+    "name" : "MySQL异常：You can\x27t specify target table for update in FROM clause解决办法",
+    "headline" : "MySQL异常：You can\x27t specify target table for update in FROM clause解决办法",
+    "description" : " 原因 在同一张表中，不能先select某个字段的值，再进行update这个字段的字。 例如：delete from person where id =(select max(id) from Person a group by email having count(email)\x26gt;=2) ; 这条sql语句，先查询where 条件后面的子查询 id，然后在进行delete这个id，所以报错！！  解决方法： 可以通过中间表消除。 delete from person where id =(select * from (select max(id) from Person a group by email having count(email)\x26gt;=2) a); 将子查询通过中间表包装起来即可。  ",
     "inLanguage" : "zk-CN",
     "author" : "Darren.Chen",
     "creator" : "Darren.Chen",
@@ -54,11 +54,11 @@
     "accountablePerson" : "Darren.Chen",
     "copyrightHolder" : "Darren.Chen",
     "copyrightYear" : "2019",
-    "datePublished": "2019-07-17 22:54:09 \x2b0800 CST",
-    "dateModified" : "2019-07-17 22:54:09 \x2b0800 CST",
-    "url" : "https:\/\/candoeverything.github.io\/2019\/upload\/",
-    "wordCount" : "26",
-    "keywords" : [ "Git","博客", "首页"]
+    "datePublished": "2019-07-18 12:18:16 \x2b0800 CST",
+    "dateModified" : "2019-07-18 12:18:16 \x2b0800 CST",
+    "url" : "https:\/\/candoeverything.github.io\/2019\/mysql_exce2\/",
+    "wordCount" : "43",
+    "keywords" : [ "Mysql","异常报错", "首页"]
 }
 </script>
 
@@ -120,16 +120,16 @@
       		
 <article class="post-warp" itemscope itemtype="http://schema.org/Article">
     <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">更新本地代码上传带git</h1>
+        <h1 class="post-title" itemprop="name headline">MySQL异常：You can&#39;t specify target table for update in FROM clause解决办法</h1>
         <div class="post-meta">
                 Written by <a itemprop="name" href="https://candoeverything.github.io/" rel="author">Darren.Chen</a> with ♥ 
                 <span class="post-time">
-                on <time datetime=2019-07-17 itemprop="datePublished">July 17, 2019</time>
+                on <time datetime=2019-07-18 itemprop="datePublished">July 18, 2019</time>
                 </span>
                 in
                 <i class="iconfont icon-folder"></i>
                 <span class="post-category">
-                        <a href="https://candoeverything.github.io/categories/%E5%8D%9A%E5%AE%A2/"> 博客 </a>
+                        <a href="https://candoeverything.github.io/categories/mysql/"> Mysql </a>
                         
                 </span>
         </div>
@@ -150,16 +150,22 @@
           
           
 
-          <p>//新建一个文件
-hugo new post/upload.md</p>
+          
 
-<p>//更新本地代码以远端仓库一致
-hugo &ndash;theme=LeaveIt &ndash;baseUrl=&ldquo;<a href="https://candoeverything.github.io/&quot;" rel="nofollow noreferrer" target="_blank">https://candoeverything.github.io/&quot;</a> &ndash;buildDrafts
-cd public
-git add .
-git commit -m &ldquo;XXXXXXX&rdquo;
-git pull origin master
-git push origin master</p>
+<h2 id="原因">原因</h2>
+
+<pre><code>在同一张表中，不能先select某个字段的值，再进行update这个字段的字。
+
+例如：delete from person where id =(select max(id) from Person a  group by email having count(email)&gt;=2) ;
+
+这条sql语句，先查询where 条件后面的子查询 id，然后在进行delete这个id，所以报错！！
+</code></pre>
+
+<h2 id="解决方法">解决方法：</h2>
+
+<pre><code>可以通过中间表消除。                                                                   delete from person where id =(select * from (select max(id) from Person a  group by email having count(email)&gt;=2) a);
+将子查询通过中间表包装起来即可。
+</code></pre>
 
     </div>
 
@@ -174,7 +180,7 @@ git push origin master</p>
              
             <p class="copyright-item">
                     <span>Link:</span>
-                    <a href=https://candoeverything.github.io/2019/upload/>https://candoeverything.github.io/2019/upload/</span>
+                    <a href=https://candoeverything.github.io/2019/mysql_exce2/>https://candoeverything.github.io/2019/mysql_exce2/</span>
             </p>
             
              
@@ -190,11 +196,11 @@ git push origin master</p>
             <section>
             <i class="iconfont icon-tag"></i>Tag(s): 
             
-            <span class="tag"><a href="https://candoeverything.github.io/tags/git/">
-                    #Git</a></span>
+            <span class="tag"><a href="https://candoeverything.github.io/tags/mysql/">
+                    #Mysql</a></span>
             
-            <span class="tag"><a href="https://candoeverything.github.io/tags/%E5%8D%9A%E5%AE%A2/">
-                    #博客</a></span>
+            <span class="tag"><a href="https://candoeverything.github.io/tags/%E5%BC%82%E5%B8%B8%E6%8A%A5%E9%94%99/">
+                    #异常报错</a></span>
             
             </section>
         
@@ -206,10 +212,8 @@ git push origin master</p>
 
     <div class="post-nav">
         
-        <a href="https://candoeverything.github.io/2019/blog/" class="prev" rel="prev" title="Flume简单概述"><i class="iconfont icon-left"></i>&nbsp;Flume简单概述</a>
+        <a href="https://candoeverything.github.io/2019/mysql_exce1/" class="prev" rel="prev" title="Mysql异常报错:This version of MySQL doesn&#39;t yet support &#39;LIMIT &amp; IN/ALL/ANY/SOME subquery"><i class="iconfont icon-left"></i>&nbsp;Mysql异常报错:This version of MySQL doesn&#39;t yet support &#39;LIMIT &amp; IN/ALL/ANY/SOME subquery</a>
          
-        
-        <a href="https://candoeverything.github.io/2019/mysql_exce1/" class="next" rel="next" title="Mysql异常报错:This version of MySQL doesn&#39;t yet support &#39;LIMIT &amp; IN/ALL/ANY/SOME subquery">Mysql异常报错:This version of MySQL doesn&#39;t yet support &#39;LIMIT &amp; IN/ALL/ANY/SOME subquery&nbsp;<i class="iconfont icon-right"></i></a>
         
     </div>
 

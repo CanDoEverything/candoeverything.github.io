@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>异常报错 on 首页</title>
+    <link>https://candoeverything.github.io/tags/%E5%BC%82%E5%B8%B8%E6%8A%A5%E9%94%99/</link>
+    <description>Recent content in 异常报错 on 首页</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zk-CN</language>
+    <lastBuildDate>Thu, 18 Jul 2019 12:18:16 +0800</lastBuildDate>
+    
+	<atom:link href="https://candoeverything.github.io/tags/%E5%BC%82%E5%B8%B8%E6%8A%A5%E9%94%99/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>MySQL异常：You can&#39;t specify target table for update in FROM clause解决办法</title>
+      <link>https://candoeverything.github.io/2019/mysql_exce2/</link>
+      <pubDate>Thu, 18 Jul 2019 12:18:16 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/mysql_exce2/</guid>
+      <description> 原因 在同一张表中，不能先select某个字段的值，再进行update这个字段的字。 例如：delete from person where id =(select max(id) from Person a group by email having count(email)&amp;gt;=2) ; 这条sql语句，先查询where 条件后面的子查询 id，然后在进行delete这个id，所以报错！！  解决方法： 可以通过中间表消除。 delete from person where id =(select * from (select max(id) from Person a group by email having count(email)&amp;gt;=2) a); 将子查询通过中间表包装起来即可。  </description>
+    </item>
+    
+    <item>
+      <title>Mysql异常报错:This version of MySQL doesn&#39;t yet support &#39;LIMIT &amp; IN/ALL/ANY/SOME subquery</title>
+      <link>https://candoeverything.github.io/2019/mysql_exce1/</link>
+      <pubDate>Thu, 18 Jul 2019 12:01:51 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/mysql_exce1/</guid>
+      <description>This version of MySQL doesn&amp;rsquo;t yet support &amp;lsquo;LIMIT &amp;amp; IN/ALL/ANY/SOME subquery select d.name Department ,e.name Employee,Salary from Employee e join Department d on e.DepartmentId=d.id where e.id=(select id from Employee order by Salary limit 3); 我在求一道求工资前三的员工的信息及其所属的部门的时候，这是我写的sql语句。执行的时候却抛出异常This version of MySQL doesn&#39;t yet support &#39;LIMIT &amp;amp; IN/ALL/ANY/SOME subquery。  原因 从字面上来看，这个版本的mysql不支持limit和IN/ALL/ANY/SOME同时存在。简单来说就是子查询的时候IN/ALL/ANY/SOME和limit不能直接的搭配使用。  解决方法 可以将通过中间表将带有limit的sql语句 [select id from (select id from Employee order by Salary limit 3) tmp ]包装起来，这样就能正常运行了。 select d.name Department ,e.name Employee,Salary from Employee e join Department d on e.</description>
+    </item>
+    
+  </channel>
+</rss>
