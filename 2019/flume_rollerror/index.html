@@ -9,9 +9,9 @@
   
   
   
-  <link rel="prev" href="https://candoeverything.github.io/2019/mysql_exce2/" />
-  <link rel="next" href="https://candoeverything.github.io/2019/flume_rollerror/" />
-  <link rel="canonical" href="https://candoeverything.github.io/2019/datawarehouse/" />
+  <link rel="prev" href="https://candoeverything.github.io/2019/datawarehouse/" />
+  <link rel="next" href="https://candoeverything.github.io/2019/flume_outofmemory/" />
+  <link rel="canonical" href="https://candoeverything.github.io/2019/flume_rollerror/" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -22,10 +22,10 @@
   <title>
        
        
-           数据仓库分层简单阐述 | 首页
+           Flume配置的roll不生效问题 | 首页
        
   </title>
-  <meta name="title" content="数据仓库分层简单阐述 | 首页">
+  <meta name="title" content="Flume配置的roll不生效问题 | 首页">
     
   
   <link rel="stylesheet" href="/font/iconfont.css">
@@ -44,9 +44,9 @@
          "@id": "https:\/\/candoeverything.github.io\/"
     },
     "articleSection" : "posts",
-    "name" : "数据仓库分层简单阐述",
-    "headline" : "数据仓库分层简单阐述",
-    "description" : "  数据仓库的概念 数据仓库分层 数据仓库每层的阐述 数据仓库分层的作用  数据仓库的概念 数据仓库是面向企业级的，为企业的每个部门提供决策手段。\n数据仓库的分层 在一般的的企业中，数据仓库一般分为4个层次。即ODS（Operation Data Store 数据原始层），DWD（Data Warehouse Detail 明细数据层），DWS（Dara Warehouse Service 数据服务层），ADS（application Data Store 数据应用层）。 不同企业可能分的层次不一样。也有可能每个层次的命名不一样，因为没有统一的命名规则，但是每层的功能都是一样的。   ODS：存储数据最原始的数据，数据不得任何处理，一定要原封不动。 DWD：对数据数据进行ETL处理，该层结构和粒度与ODS保持一致。 DWS：在DWD的基础上，对数据进行汇总处理。 ADS：为报表提供数据。  数据仓库分层的作用  隔离原始数据。原始数据单层存储，不守其他层次操作的影响。 减少重复处理。既然每一层都有相对于的功能，处理某个功能只要到相对于的层开发即可。不需要第一层开始到最后一层。  ",
+    "name" : "Flume配置的roll不生效问题",
+    "headline" : "Flume配置的roll不生效问题",
+    "description" : "当我们使用hdfsSink的时候，我们往往会要求文件以时间，文件大小或者数据条数滚动，以避免参数小文件。\n a1.sinks.k1.type=hdfs a1.sinks.k1.hdfs.path=\/temp\/%Y-%m-%d a1.sinks.k1.hdfs.round=true a1.sinks.k1.hdfs.roundvalue=1 a1.sinks.k1.hdfs.roundUnit=hour a1.sinks.k1.hdfs.rollCount=0 \/\/设置不以条数滚动 a1.sinks.k1.hdfs.rollInterval=0 \/\/设置不以时间滚动 a1.sinks.k1.hdfs.rollSize =134217728 \/\/文件达到128M滚动一次\n 当我执行以上脚本的时候，发现并没有和我想象的那一样以128m滚动一次文件。而是1秒内滚动一次，产生大量的小文件。\n滚动属性为什么不生效？ 我查了资料才发现，当你设置的副本数（hdfs.minBolckReplicas）设置不为1的时候， 你的roll文件的配置就不会生效。  解决方法 添加 a1.sinks.k1.hdfshdfs.minBolckReplicas=1 即可  为什么hdfshdfs.minBolckReplicas会影响roll文件滚动呢？ 假如hdfs的副本是3，flume配置滚动时间为10s，那么在第二秒的时候，flume就会检测到hdfs在复制块，那么这个时候flume为了不影响hdfs复制块的过程，就会滚动文件。 这样就会导致我们设置的roll配置不生效。 k1.hdfshdfs.minBolckReplicas=1就是为了防flume感知不到hdfs的快复制，这样roll配置就不会受到影响。",
     "inLanguage" : "zk-CN",
     "author" : "Darren.Chen",
     "creator" : "Darren.Chen",
@@ -54,11 +54,11 @@
     "accountablePerson" : "Darren.Chen",
     "copyrightHolder" : "Darren.Chen",
     "copyrightYear" : "2019",
-    "datePublished": "2019-07-19 14:44:26 \x2b0800 CST",
-    "dateModified" : "2019-07-19 14:44:26 \x2b0800 CST",
-    "url" : "https:\/\/candoeverything.github.io\/2019\/datawarehouse\/",
-    "wordCount" : "28",
-    "keywords" : [ "数据仓库", "首页"]
+    "datePublished": "2019-07-21 20:34:09 \x2b0800 CST",
+    "dateModified" : "2019-07-21 20:34:09 \x2b0800 CST",
+    "url" : "https:\/\/candoeverything.github.io\/2019\/flume_rollerror\/",
+    "wordCount" : "25",
+    "keywords" : [ "Hadoop","Flume", "首页"]
 }
 </script>
 
@@ -120,16 +120,16 @@
       		
 <article class="post-warp" itemscope itemtype="http://schema.org/Article">
     <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">数据仓库分层简单阐述</h1>
+        <h1 class="post-title" itemprop="name headline">Flume配置的roll不生效问题</h1>
         <div class="post-meta">
                 Written by <a itemprop="name" href="https://candoeverything.github.io/" rel="author">Darren.Chen</a> with ♥ 
                 <span class="post-time">
-                on <time datetime=2019-07-19 itemprop="datePublished">July 19, 2019</time>
+                on <time datetime=2019-07-21 itemprop="datePublished">July 21, 2019</time>
                 </span>
                 in
                 <i class="iconfont icon-folder"></i>
                 <span class="post-category">
-                        <a href="https://candoeverything.github.io/categories/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/"> 数据仓库 </a>
+                        <a href="https://candoeverything.github.io/categories/flume/"> Flume </a>
                         
                 </span>
         </div>
@@ -152,36 +152,36 @@
 
           
 
-<ul>
-<li><strong>数据仓库的概念</strong></li>
-<li><strong>数据仓库分层</strong></li>
-<li><strong>数据仓库每层的阐述</strong></li>
-<li><strong>数据仓库分层的作用</strong></li>
-</ul>
+<p><strong>当我们使用hdfsSink的时候，我们往往会要求文件以时间，文件大小或者数据条数滚动，以避免参数小文件。</strong></p>
 
-<h1 id="数据仓库的概念">数据仓库的概念</h1>
+<blockquote>
+<p>a1.sinks.k1.type=hdfs
+a1.sinks.k1.hdfs.path=/temp/%Y-%m-%d
+a1.sinks.k1.hdfs.round=true
+a1.sinks.k1.hdfs.roundvalue=1
+a1.sinks.k1.hdfs.roundUnit=hour
+a1.sinks.k1.hdfs.rollCount=0  //设置不以条数滚动
+a1.sinks.k1.hdfs.rollInterval=0 //设置不以时间滚动
+a1.sinks.k1.hdfs.rollSize =134217728 //文件达到128M滚动一次</p>
+</blockquote>
 
-<p>数据仓库是面向企业级的，为企业的每个部门提供决策手段。</p>
+<p><em>当我执行以上脚本的时候，发现并没有和我想象的那一样以128m滚动一次文件。而是1秒内滚动一次，产生大量的小文件。</em></p>
 
-<h1 id="数据仓库的分层">数据仓库的分层</h1>
+<h2 id="滚动属性为什么不生效">滚动属性为什么不生效？</h2>
 
-<pre><code>在一般的的企业中，数据仓库一般分为4个层次。即ODS（Operation Data Store 数据原始层），DWD（Data Warehouse Detail 明细数据层），DWS（Dara Warehouse Service 数据服务层），ADS（application Data Store 数据应用层）。
-不同企业可能分的层次不一样。也有可能每个层次的命名不一样，因为没有统一的命名规则，但是每层的功能都是一样的。
+<pre><code>我查了资料才发现，当你设置的副本数（hdfs.minBolckReplicas）设置不为1的时候，    你的roll文件的配置就不会生效。
 </code></pre>
 
-<ol>
-<li>ODS：存储数据最原始的数据，数据不得任何处理，一定要原封不动。</li>
-<li>DWD：对数据数据进行ETL处理，该层结构和粒度与ODS保持一致。</li>
-<li>DWS：在DWD的基础上，对数据进行汇总处理。</li>
-<li>ADS：为报表提供数据。</li>
-</ol>
+<h2 id="解决方法">解决方法</h2>
 
-<h1 id="数据仓库分层的作用">数据仓库分层的作用</h1>
+<pre><code>添加 a1.sinks.k1.hdfshdfs.minBolckReplicas=1 即可
+</code></pre>
 
-<ol>
-<li>隔离原始数据。原始数据单层存储，不守其他层次操作的影响。</li>
-<li>减少重复处理。既然每一层都有相对于的功能，处理某个功能只要到相对于的层开发即可。不需要第一层开始到最后一层。</li>
-</ol>
+<h2 id="为什么hdfshdfs-minbolckreplicas会影响roll文件滚动呢">为什么hdfshdfs.minBolckReplicas会影响roll文件滚动呢？</h2>
+
+<p>假如hdfs的副本是3，flume配置滚动时间为10s，那么在第二秒的时候，flume就会检测到hdfs在复制块，那么这个时候flume为了不影响hdfs复制块的过程，就会滚动文件。
+这样就会导致我们设置的roll配置不生效。
+k1.hdfshdfs.minBolckReplicas=1就是为了防flume感知不到hdfs的快复制，这样roll配置就不会受到影响。</p>
 
     </div>
 
@@ -196,7 +196,7 @@
              
             <p class="copyright-item">
                     <span>Link:</span>
-                    <a href=https://candoeverything.github.io/2019/datawarehouse/>https://candoeverything.github.io/2019/datawarehouse/</span>
+                    <a href=https://candoeverything.github.io/2019/flume_rollerror/>https://candoeverything.github.io/2019/flume_rollerror/</span>
             </p>
             
              
@@ -212,8 +212,11 @@
             <section>
             <i class="iconfont icon-tag"></i>Tag(s): 
             
-            <span class="tag"><a href="https://candoeverything.github.io/tags/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/">
-                    #数据仓库</a></span>
+            <span class="tag"><a href="https://candoeverything.github.io/tags/hadoop/">
+                    #Hadoop</a></span>
+            
+            <span class="tag"><a href="https://candoeverything.github.io/tags/flume/">
+                    #Flume</a></span>
             
             </section>
         
@@ -225,10 +228,10 @@
 
     <div class="post-nav">
         
-        <a href="https://candoeverything.github.io/2019/mysql_exce2/" class="prev" rel="prev" title="MySQL异常：You can&#39;t specify target table for update in FROM clause解决办法"><i class="iconfont icon-left"></i>&nbsp;MySQL异常：You can&#39;t specify target table for update in FROM clause解决办法</a>
+        <a href="https://candoeverything.github.io/2019/datawarehouse/" class="prev" rel="prev" title="数据仓库分层简单阐述"><i class="iconfont icon-left"></i>&nbsp;数据仓库分层简单阐述</a>
          
         
-        <a href="https://candoeverything.github.io/2019/flume_rollerror/" class="next" rel="next" title="Flume配置的roll不生效问题">Flume配置的roll不生效问题&nbsp;<i class="iconfont icon-right"></i></a>
+        <a href="https://candoeverything.github.io/2019/flume_outofmemory/" class="next" rel="next" title="Flume异常：ERROR PollableSourceRunner-kafkaSource-r1 process failed java.lang.OutOfMemoryError GC overhead limit exceeded">Flume异常：ERROR PollableSourceRunner-kafkaSource-r1 process failed java.lang.OutOfMemoryError GC overhead limit exceeded&nbsp;<i class="iconfont icon-right"></i></a>
         
     </div>
 

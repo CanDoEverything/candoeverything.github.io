@@ -6,10 +6,44 @@
     <description>Recent content in Flume on 首页</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zk-CN</language>
-    <lastBuildDate>Wed, 17 Jul 2019 12:47:15 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 21 Jul 2019 20:43:03 +0800</lastBuildDate>
     
 	<atom:link href="https://candoeverything.github.io/tags/flume/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Flume采集到的数据导入hive所出现的问题</title>
+      <link>https://candoeverything.github.io/flumetohive/</link>
+      <pubDate>Sun, 21 Jul 2019 20:43:03 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/flumetohive/</guid>
+      <description>今天用Flume消费Kafka的topic内的数据到HDFS后，我想把数据导入到hive进行分析。但是在导入数据的时候却出现了问题，怎么也导不进去。
+在期间，我查询了一下flume存储到HDFS的默认格式和hive的默认存储格式后，我才知道原因出错在哪里。
+原因 在期间，我查询了一下flume存储到HDFS的默认格式和hive的默认存储格式后，我才知道原因出错在哪里！ flume导入hdfs的默认格式的sequencefile，而hive默认格式是textfile，所以会导数据失败或者出现问题。  解决方案 当我们知道Flume与hive的默认存储格式都不一样时，所以我们要改变hive 的默认格式。
+1.stored as sequecefile 2.自定义输入输出的格式： STORED AS INPUTFORMAT &#39;org.apache.hadoop.mapred.SequenceFileInputFormat&#39;? OUTPUTFORMAT&#39;org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat&#39; CREATE EXTERNAL TABLE ods_start_log(`line` string) PARTITIONED BY (`dt` string) STORED AS  参考https://blog.csdn.net/qq_26442553/article/details/80300714</description>
+    </item>
+    
+    <item>
+      <title>Flume异常：ERROR PollableSourceRunner-kafkaSource-r1 process failed java.lang.OutOfMemoryError GC overhead limit exceeded</title>
+      <link>https://candoeverything.github.io/2019/flume_outofmemory/</link>
+      <pubDate>Sun, 21 Jul 2019 20:38:41 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/flume_outofmemory/</guid>
+      <description>使用Flume的时候抛出：ERROR PollableSourceRunner-kafkaSource-r1 process failed java.lang.OutOfMemoryError GC overhead limit exceeded
+原因： 抛出如上异常，是因为Flume内存溢出，没有足够的内存继续运行。  解决方案： 到$flume/conf/flume-env.sh目录下，添加一下配置 export JAVA_OPTS=&amp;quot;-Xms100m -Xmx2000m -Dcom.sun.management.jmxremote&amp;quot;  根据自己的节点配置，来调整。-Xmx与-Xms最好设置一致，减少内存抖动带来的性能影响，如果设置不一致容易导致频繁fullgc。</description>
+    </item>
+    
+    <item>
+      <title>Flume配置的roll不生效问题</title>
+      <link>https://candoeverything.github.io/2019/flume_rollerror/</link>
+      <pubDate>Sun, 21 Jul 2019 20:34:09 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/flume_rollerror/</guid>
+      <description>当我们使用hdfsSink的时候，我们往往会要求文件以时间，文件大小或者数据条数滚动，以避免参数小文件。
+ a1.sinks.k1.type=hdfs a1.sinks.k1.hdfs.path=/temp/%Y-%m-%d a1.sinks.k1.hdfs.round=true a1.sinks.k1.hdfs.roundvalue=1 a1.sinks.k1.hdfs.roundUnit=hour a1.sinks.k1.hdfs.rollCount=0 //设置不以条数滚动 a1.sinks.k1.hdfs.rollInterval=0 //设置不以时间滚动 a1.sinks.k1.hdfs.rollSize =134217728 //文件达到128M滚动一次
+ 当我执行以上脚本的时候，发现并没有和我想象的那一样以128m滚动一次文件。而是1秒内滚动一次，产生大量的小文件。
+滚动属性为什么不生效？ 我查了资料才发现，当你设置的副本数（hdfs.minBolckReplicas）设置不为1的时候， 你的roll文件的配置就不会生效。  解决方法 添加 a1.sinks.k1.hdfshdfs.minBolckReplicas=1 即可  为什么hdfshdfs.minBolckReplicas会影响roll文件滚动呢？ 假如hdfs的副本是3，flume配置滚动时间为10s，那么在第二秒的时候，flume就会检测到hdfs在复制块，那么这个时候flume为了不影响hdfs复制块的过程，就会滚动文件。 这样就会导致我们设置的roll配置不生效。 k1.hdfshdfs.minBolckReplicas=1就是为了防flume感知不到hdfs的快复制，这样roll配置就不会受到影响。</description>
+    </item>
     
     <item>
       <title>Flume简单概述</title>

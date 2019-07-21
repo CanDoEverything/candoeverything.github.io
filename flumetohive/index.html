@@ -9,9 +9,9 @@
   
   
   
+  <link rel="prev" href="https://candoeverything.github.io/about/" />
   
-  <link rel="next" href="https://candoeverything.github.io/flumetohive/" />
-  <link rel="canonical" href="https://candoeverything.github.io/about/" />
+  <link rel="canonical" href="https://candoeverything.github.io/flumetohive/" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -22,10 +22,10 @@
   <title>
        
        
-           &gt; | 首页
+           Flume采集到的数据导入hive所出现的问题 | 首页
        
   </title>
-  <meta name="title" content="&gt; | 首页">
+  <meta name="title" content="Flume采集到的数据导入hive所出现的问题 | 首页">
     
   
   <link rel="stylesheet" href="/font/iconfont.css">
@@ -44,9 +44,9 @@
          "@id": "https:\/\/candoeverything.github.io\/"
     },
     "articleSection" : "",
-    "name" : "\x3e",
-    "headline" : "\x3e",
-    "description" : "",
+    "name" : "Flume采集到的数据导入hive所出现的问题",
+    "headline" : "Flume采集到的数据导入hive所出现的问题",
+    "description" : "今天用Flume消费Kafka的topic内的数据到HDFS后，我想把数据导入到hive进行分析。但是在导入数据的时候却出现了问题，怎么也导不进去。\n在期间，我查询了一下flume存储到HDFS的默认格式和hive的默认存储格式后，我才知道原因出错在哪里。\n原因 在期间，我查询了一下flume存储到HDFS的默认格式和hive的默认存储格式后，我才知道原因出错在哪里！ flume导入hdfs的默认格式的sequencefile，而hive默认格式是textfile，所以会导数据失败或者出现问题。  解决方案 当我们知道Flume与hive的默认存储格式都不一样时，所以我们要改变hive 的默认格式。\n1.stored as sequecefile 2.自定义输入输出的格式： STORED AS INPUTFORMAT \x27org.apache.hadoop.mapred.SequenceFileInputFormat\x27? OUTPUTFORMAT\x27org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat\x27 CREATE EXTERNAL TABLE ods_start_log(`line` string) PARTITIONED BY (`dt` string) STORED AS  参考https:\/\/blog.csdn.net\/qq_26442553\/article\/details\/80300714",
     "inLanguage" : "zk-CN",
     "author" : "Darren.Chen",
     "creator" : "Darren.Chen",
@@ -54,11 +54,11 @@
     "accountablePerson" : "Darren.Chen",
     "copyrightHolder" : "Darren.Chen",
     "copyrightYear" : "2019",
-    "datePublished": "2019-04-09 00:00:00 \x2b0000 UTC",
-    "dateModified" : "2019-04-09 00:00:00 \x2b0000 UTC",
-    "url" : "https:\/\/candoeverything.github.io\/about\/",
-    "wordCount" : "0",
-    "keywords" : [  "首页"]
+    "datePublished": "2019-07-21 20:43:03 \x2b0800 CST",
+    "dateModified" : "2019-07-21 20:43:03 \x2b0800 CST",
+    "url" : "https:\/\/candoeverything.github.io\/flumetohive\/",
+    "wordCount" : "29",
+    "keywords" : [ "Hadoop","Flume", "首页"]
 }
 </script>
 
@@ -83,9 +83,9 @@
                 
                 <a class="menu-item" href="/tags/" title="">标签</a>
                 
-                <a class="menu-item active" href="/about/" title="">关于</a>
+                <a class="menu-item" href="/about/" title="">关于</a>
                 
-                <a class="menu-item active" href="/about/" title="&gt;">&gt;</a>
+                <a class="menu-item" href="/about/" title="&gt;">&gt;</a>
                 
         </div>
     </div>
@@ -108,9 +108,9 @@
                 
                 <a class="menu-item" href="/tags/" title="">标签</a>
                 
-                <a class="menu-item active" href="/about/" title="">关于</a>
+                <a class="menu-item" href="/about/" title="">关于</a>
                 
-                <a class="menu-item active" href="/about/" title="&gt;">&gt;</a>
+                <a class="menu-item" href="/about/" title="&gt;">&gt;</a>
                 
         </div>
     </div>
@@ -119,9 +119,34 @@
           <div class="container">
       		
 <div class="post-warp archive">
-    <h2 class="post-title" style="text-align:right;padding-bottom:2em">&gt;</h2>
+    <h2 class="post-title" style="text-align:right;padding-bottom:2em">Flume采集到的数据导入hive所出现的问题</h2>
     <div class="post-content">
-        <p><img src="https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=2239322943,1333922446&amp;fm=173&amp;s=E08BB0575C4152D6C00D1CF70300E068&amp;w=393&amp;h=292&amp;img.JPEG" alt="markdown" title="markdown" /></p>
+        
+
+<p>今天用Flume消费Kafka的topic内的数据到HDFS后，我想把数据导入到hive进行分析。但是在导入数据的时候却出现了问题，怎么也导不进去。</p>
+
+<p>在期间，我查询了一下flume存储到HDFS的默认格式和hive的默认存储格式后，我才知道原因出错在哪里。</p>
+
+<h1 id="原因">原因</h1>
+
+<pre><code>在期间，我查询了一下flume存储到HDFS的默认格式和hive的默认存储格式后，我才知道原因出错在哪里！
+flume导入hdfs的默认格式的sequencefile，而hive默认格式是textfile，所以会导数据失败或者出现问题。
+</code></pre>
+
+<h1 id="解决方案">解决方案</h1>
+
+<p>当我们知道Flume与hive的默认存储格式都不一样时，所以我们要改变hive 的默认格式。</p>
+
+<pre><code>1.stored as sequecefile
+2.自定义输入输出的格式：
+    STORED AS INPUTFORMAT 'org.apache.hadoop.mapred.SequenceFileInputFormat'?
+OUTPUTFORMAT'org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat'
+ CREATE EXTERNAL TABLE ods_start_log(`line` string)
+PARTITIONED BY (`dt` string)
+STORED AS
+</code></pre>
+
+<p>参考<a href="https://blog.csdn.net/qq_26442553/article/details/80300714" rel="nofollow noreferrer" target="_blank">https://blog.csdn.net/qq_26442553/article/details/80300714</a></p>
 
     </div>
 </div>
