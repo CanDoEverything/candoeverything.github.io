@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zk-CN">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  <meta name="author" content="Darren.Chen">
+  
+  
+  
+  
+  <link rel="next" href="https://candoeverything.github.io/2019/hive_table/" />
+  <link rel="canonical" href="https://candoeverything.github.io/2019/hive_3commit/" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           Hive命令三种提交方式 | 首页
+       
+  </title>
+  <meta name="title" content="Hive命令三种提交方式 | 首页">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  
+  
+ 
+
+<script type="application/ld+json">
+ "@context" : "http://schema.org",
+    "@type" : "BlogPosting",
+    "mainEntityOfPage": {
+         "@type": "WebPage",
+         "@id": "https:\/\/candoeverything.github.io\/"
+    },
+    "articleSection" : "posts",
+    "name" : "Hive命令三种提交方式",
+    "headline" : "Hive命令三种提交方式",
+    "description" : "命令行界面 命令行界面是和hive交互最常用的方式 进入方式：${HIVE_HOME}bin\/hive\n例如 hive\x26gt; select * from test2; OK 2 3 Time taken: 1.549 seconds, Fetched: 2 row(s)  命令行一些常用的功能  自动补全功能：如果用户在输入的过程敲击Tab键，那么hive会帮你自动补全关键字或者函数，方便我们开发和减少我们开发时间。 显示当前数据库名字：在conf目录下的hive-site.xml加入  hive.cli.print.current.db true  显示字段名字  hive.cli.print.header true  提示:如果conf下没有hive-site.xml，则需要我们自己创建 \x26lt;?xml-stylesheet type=\x26ldquo;text\/xsl\x26rdquo; href=\x26ldquo;configuration.xsl\x26rdquo;?\x26gt;   hive.cli.print.header true   hive.cli.print.current.db true   在hive使用hadoop命令 用户可以在hive使用hadoop命令，这样会更加高效写，因为在hive会在同一个线程执行这些命令，而在 bash shell需要每次执行都启动一个新的线程。 例如：hive (default)\x26gt; dfs -ls \/;  在bash shell上使用hive 使用 -e 不进入hive的交互窗口执行sql语句  bin\/hive -e \x26quot;select * from test2;\x26quot;  使用-f 执行脚本中sql语句 文件的后缀为.",
+    "inLanguage" : "zk-CN",
+    "author" : "Darren.Chen",
+    "creator" : "Darren.Chen",
+    "publisher": "Darren.Chen",
+    "accountablePerson" : "Darren.Chen",
+    "copyrightHolder" : "Darren.Chen",
+    "copyrightYear" : "2019",
+    "datePublished": "2019-03-11 22:43:21 \x2b0800 CST",
+    "dateModified" : "2019-03-11 22:43:21 \x2b0800 CST",
+    "url" : "https:\/\/candoeverything.github.io\/2019\/hive_3commit\/",
+    "wordCount" : "87",
+    "keywords" : [ "Hadoop","Hive", "首页"]
+}
+</script>
+
+</head>
+
+  
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://candoeverything.github.io/">首页</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">博客</a>
+                
+                <a class="menu-item" href="/categories/" title="">分类</a>
+                
+                <a class="menu-item" href="/tags/" title="">标签</a>
+                
+                <a class="menu-item" href="/about/" title="">关于</a>
+                
+                <a class="menu-item" href="/about/" title="&gt;">&gt;</a>
+                
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://candoeverything.github.io/">首页</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">博客</a>
+                
+                <a class="menu-item" href="/categories/" title="">分类</a>
+                
+                <a class="menu-item" href="/tags/" title="">标签</a>
+                
+                <a class="menu-item" href="/about/" title="">关于</a>
+                
+                <a class="menu-item" href="/about/" title="&gt;">&gt;</a>
+                
+        </div>
+    </div>
+</nav>
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp" itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">Hive命令三种提交方式</h1>
+        <div class="post-meta">
+                Written by <a itemprop="name" href="https://candoeverything.github.io/" rel="author">Darren.Chen</a> with ♥ 
+                <span class="post-time">
+                on <time datetime=2019-03-11 itemprop="datePublished">March 11, 2019</time>
+                </span>
+                in
+                <i class="iconfont icon-folder"></i>
+                <span class="post-category">
+                        <a href="https://candoeverything.github.io/categories/hive/"> Hive </a>
+                        
+                </span>
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          
+
+<h1 id="命令行界面">命令行界面</h1>
+
+<p>命令行界面是和hive交互最常用的方式
+进入方式：${HIVE_HOME}bin/hive</p>
+
+<h6 id="例如">例如</h6>
+
+<pre><code>hive&gt; select * from test2;
+OK
+2
+3
+Time taken: 1.549 seconds, Fetched: 2 row(s)
+</code></pre>
+
+<h6 id="命令行一些常用的功能">命令行一些常用的功能</h6>
+
+<ol>
+<li><strong>自动补全功能</strong>：如果用户在输入的过程敲击Tab键，那么hive会帮你自动补全关键字或者函数，方便我们开发和减少我们开发时间。</li>
+<li><strong>显示当前数据库名字</strong>：在conf目录下的hive-site.xml加入
+    <property>
+    <name>hive.cli.print.current.db</name>
+    <value>true</value>
+    </property></li>
+<li><strong>显示字段名字</strong>
+    <property>
+    <name>hive.cli.print.header</name>
+    <value>true</value>
+    </property>
+<font size=3 color=red>提示:如果conf下没有hive-site.xml，则需要我们自己创建</font>
+    &lt;?xml-stylesheet type=&ldquo;text/xsl&rdquo; href=&ldquo;configuration.xsl&rdquo;?&gt;
+    <configuration>
+    <property>
+    <name>hive.cli.print.header</name>
+    <value>true</value>
+    </property>
+    <property>
+    <name>hive.cli.print.current.db</name>
+    <value>true</value>
+    </property>
+    </configuration></li>
+<li><strong>在hive使用hadoop命令</strong>
+用户可以在hive使用hadoop命令，这样会更加高效写，因为在hive会在同一个线程执行这些命令，而在 bash shell需要每次执行都启动一个新的线程。
+    例如：hive (default)&gt; dfs -ls /;</li>
+</ol>
+
+<h1 id="在bash-shell上使用hive">在bash shell上使用hive</h1>
+
+<h6 id="使用-e-不进入hive的交互窗口执行sql语句">使用 -e  不进入hive的交互窗口执行sql语句</h6>
+
+<pre><code>    bin/hive -e &quot;select * from test2;&quot;
+</code></pre>
+
+<h6 id="使用-f-执行脚本中sql语句-文件的后缀为-q或者-sql">使用-f 执行脚本中sql语句  文件的后缀为.q或者.sql</h6>
+
+<pre><code>touch test2.sql
+vim test2.sql
+插入hql语句
+select * from test2;
+insert into test2 values(7);
+select * from test2;
+
+bin/hive -f /opt/test2.txt;
+
+额外 加入-S 可以将结果保存在一个文件中
+
+    例如 bin/hive -f /opt/test2.txt &gt; /opt/result.txt; 
+</code></pre>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>Darren.Chen </span>
+                </p>
+            
+           
+             
+            <p class="copyright-item">
+                    <span>Link:</span>
+                    <a href=https://candoeverything.github.io/2019/hive_3commit/>https://candoeverything.github.io/2019/hive_3commit/</span>
+            </p>
+            
+             
+            <p class="copyright-item lincese">
+                本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+            <section>
+            <i class="iconfont icon-tag"></i>Tag(s): 
+            
+            <span class="tag"><a href="https://candoeverything.github.io/tags/hadoop/">
+                    #Hadoop</a></span>
+            
+            <span class="tag"><a href="https://candoeverything.github.io/tags/hive/">
+                    #Hive</a></span>
+            
+            </section>
+        
+        <section>
+                <a href="javascript:window.history.back();">back</a></span> · 
+                <span><a href="https://candoeverything.github.io/">home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+         
+        
+        <a href="https://candoeverything.github.io/2019/hive_table/" class="next" rel="next" title="Hive：内部表与外部表区别&#34;">Hive：内部表与外部表区别&#34;&nbsp;<i class="iconfont icon-right"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+                 
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2019 - 2019</span>
+        
+        <span class="with-love">
+    	 <i class="iconfont icon-love"></i> 
+         </span>
+         
+            <span class="author" itemprop="copyrightHolder"><a href="https://candoeverything.github.io/">Darren.Chen</a> | </span> 
+         
+
+         
+		  <span>Powered by <a href="https://gohugo.io/" target="_blank" rel="external nofollow">Hugo</a> & <a href="https://github.com/liuzc/leaveit" target="_blank" rel="external nofollow">LeaveIt</a></span> 
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+     </div>
+  </body>
+</html>

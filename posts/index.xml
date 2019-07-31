@@ -80,5 +80,84 @@
       <description> 1.Flume的概念 2.Flume的作用和用途 3.Flume的组成架构 4.Flume的事务 1.1 什么是Flume？ 定义：Flume是一个高可用，分布式的海量日志采集系统。  2.1Flume的的作用是什么？ Flume的作用：实时的监控某个某个文件夹或者文件内数据的变化，然后再将变化的数据传输到目的源存储或者分析处理。  2.2Flume的企业中主要用途  实时的读取服务器产生的日志数据或者爬虫爬爬取的数据，然后传输到指定目的源处理。 一般flume下端都会与kafka搭配，这样可以指定数据到多个目的地。（例如数据传输到hdfs进行备份，同时也传输给spark进行实时的分析数据等等。。）  3.1Flume的组成架构 Flume的工作基本单元是Agent，agent是一个jvm进程，它是将数据包装成事件event从数据源传输到目的源。 Agent有三个组件组成： 1.Source：从数据源拉取数据，通过put事务将数据传输给channel。 2.Channel：作为Source和Sink的数据的缓存区。 3.Sink：拉取缓存在channel的数据，然后传输给下一个目的源。  4.1Flume的事务 Put事务 putlist：是一个临时缓冲区，用于缓存数据。 doPut：将数据缓存到临时缓存区putlist。 doCommit：检查channel内存是否足够。若是足够，将数据写入到channel。若是不够，则执行dorollback。 doRollBack：当channel内存不够时候，将数据回滚，保证了数据安全性。  Take事务 takelist：是一个临时缓冲区，用于缓存数据。 doTake：将channel的数据缓存到临时缓冲区takelist，并删掉channel内的数据。 doCommit：检查数据是否全部成功传输到下一个目的源。若全部传输成功，则删除掉takelist缓存的数据。 doRollBack：若是传输过程中出现故障，数据没能全部传输成功，则将takelist内的数据回滚给channel。  </description>
     </item>
     
+    <item>
+      <title>(转)hive数据倾斜优化策略</title>
+      <link>https://candoeverything.github.io/2019/hive_shujuqingxie/</link>
+      <pubDate>Sun, 17 Mar 2019 00:41:03 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/hive_shujuqingxie/</guid>
+      <description>hive数据倾斜优化策略 1.Map端部分聚合   先看看下面这条SQL，由于用户的性别只有男和女两个值 （未知）。如果没有map端的部分聚合优化，map直接把groupby_key 当作reduce_key发送给reduce做聚合，就会导致计算不均衡的现象。虽然map有100万个，但是reduce只有两个在做聚合，每个reduce处理100亿条记录。 selectuser.gender,count(1) from user group by user.gende 没开map端聚合产生的计算不均衡现象
+ hive.map.aggr=true参数控制在group by的时候是否map局部聚合，这个参数默认是打开的。参数打开后的计算过程如下图。由于map端已经做了局部聚合，虽然还是只有两个reduce做最后的聚合，但是每个reduce只用处理100万行记录，相对优化前的100亿小了1万
+  map端聚合打开map聚合开关缺省是打开的，但是不是所有的聚合都需要这个优化。考虑先面的sql,如果groupby_key是用户ID，因为用户ID没有重复的，因此map聚合没有太大意义，并且浪费资源。
+优化
+select user..id,count(1) from user group by user.id ；  hive.groupby.mapaggr.checkinterval = 100000 Hive.map.aggr.hash.min.reduction=0.5   上面这两个参数控制关掉map聚合的策略。Map开始的时候先尝试给前100000 条记录做hash聚合，如果聚合后的记录数/100000&amp;gt;0.5说明这个groupby_key没有什么重复的，再继续做局部聚合没有意义，100000 以后就自动把聚合开关关掉，在map的log中会看到下面的提示： 2011-02-23 06:46:11,206 WARN org.apache.hadoop.hive.ql.exec.GroupByOperator: Disable Hash Aggr: #hash table = 99999 #total = 100000 reduction = 0.0 minReduction = 0.52.
+有distinct下的优化 在数据量比较大的时候有distinct出现的时候，比如下面的sql,由于map需要保存所有的user.id ,map聚合开关会自动关掉，导致出现计算不均衡的现象，只有2个redcue做聚合，每个reduce处理100亿条记录。数据量小的时候无所谓。
+select user.gender,count(distinct user.id ) from user group by user.</description>
+    </item>
+    
+    <item>
+      <title>Hive的一些调优</title>
+      <link>https://candoeverything.github.io/2019/hive_tiaoyou/</link>
+      <pubDate>Sat, 16 Mar 2019 23:35:56 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/hive_tiaoyou/</guid>
+      <description>笛卡尔积 尽量避免笛卡尔积，join的时候不加on条件，或者无效的on条件，Hive只能使用1个reducer来完成笛卡尔积。
+Fetch抓取 Fetch抓取：是指hive在某些情况下不必使用MapReducer计算，例如全局查询的时候（select * from table）。Hive可以简单的读取表对应目录下的文件，然后输出到控制台即可。 * 用法： set hive.fetch.task.conversion=more; * 注意： 在hive-default.xml.template文件中hive.fetch.task.conversion默认是more，老版本hive默认是minimal，该属性修改为more以后，在全局查找、字段查找、limit查找等都不走mapreduce，在某些操作下，可以大大减少了时间。
+开启本地模式 在数据集比较小的情况下，我们不必需要在集群中运行和处理数据集，因为在这种情况下，查询触发任务的事件比实际执行job执行的实际还要多。在大多数数据比较小的情况下，我们只需要在一台节点上处理所有任务，这样可以大大减少执行世间。 * 用法： set hive.exec.mode.local.auto=true;
+行列过滤 Hive会将一个查询转化成一个或者多个阶段。这样的阶段可以是MapReduce阶段、抽样阶段、合并阶段、limit阶段。或者Hive执行过程中可能需要的其他阶段。默认情况下，Hive一次只会执行一个阶段。不过，某个特定的job可能包含众多的阶段，而这些阶段可能并非完全互相依赖的，也就是说有些阶段是可以并行执行的，这样可能使得整个job的执行时间缩短。不过，如果有更多的阶段可以并行执行，那么job可能就越快完成。 * 列过滤 在select下，我们只可能值查询我们需要的字段，避免使用*； *** 行过滤** 在分区剪裁中，当使用外关联时，如果将副表的过滤条件写在Where后面，那么就会先全表关联，之后再过滤
+并行处理 Hive会将一个查询转化成一个或者多个阶段。这样的阶段可以是MapReduce阶段、抽样阶段、合并阶段、limit阶段。或者Hive执行过程中可能需要的其他阶段。默认情况下，Hive一次只会执行一个阶段。不过，某个特定的job可能包含众多的阶段，而这些阶段可能并非完全互相依赖的，也就是说有些阶段是可以并行执行的，这样可能使得整个job的执行时间缩短。不过，如果有更多的阶段可以并行执行，那么job可能就越快完成。 * 语法 set hive.exec.parallel=true; //打开任务并行执行 set hive.exec.parallel.thread.number=16; //同一个sql允许最大并行度，默认为8。 * 应用场景举例： ``` Select * from table Union Select * from table2；
+这样 Select * from table 与Select * from table2 两个独立的阶段就会并行处理，减少时间。 * **注意** 如果job中并行阶段增多，那么集群利用率就会增加。 ## 动态分区调整 关系型数据库中，对分区表Insert数据时候，数据库自动会根据分区字段的值，将数据插入到相应的分区中，Hive中也提供了类似的机制，即动态分区(Dynamic Partition)，只不过，使用Hive的动态分区，需要进行相应的配置。 **1．开启动态分区参数设置** （1）开启动态分区功能（默认true，开启） `hive.</description>
+    </item>
+    
+    <item>
+      <title>Hive常用的参数配置</title>
+      <link>https://candoeverything.github.io/2019/hive_sist/</link>
+      <pubDate>Fri, 15 Mar 2019 23:15:28 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/hive_sist/</guid>
+      <description>Hive常用的参数配置 显示当前数据库名字 在conf目录下的hive-sist.xml配置（若hive-sist.xml不存在，则自行创建）
+&amp;lt;property&amp;gt; &amp;lt;name&amp;gt;hive.cli.print.current.db&amp;lt;/name&amp;gt; &amp;lt;value&amp;gt;true&amp;lt;/value&amp;gt; &amp;lt;/property&amp;gt;  显示字段配置 在conf目录下的hive-sist.xml配置（若hive-sist.xml不存在，则自行创建）
+&amp;lt;property&amp;gt; &amp;lt;name&amp;gt;hive.cli.print.header&amp;lt;/name&amp;gt; &amp;lt;value&amp;gt;true&amp;lt;/value&amp;gt; &amp;lt;/property&amp;gt;  自定义hive运行日志路径 ·hive运行日志目录默认在/temp/用户名/hive.log ·修改hive运行日志路径：
+1：将conf下的hive-log4j.properties.template重命名为hive-log4j.properties 2：vim hive-log4j.properties 找到hive.log.dir 写入你想要的路径即可
+例如：hive.log.dir=/opt/module/hive/log（log目录可以不用提前创建好，hive会帮你自动创建）</description>
+    </item>
+    
+    <item>
+      <title>Hive分桶与随机抽样</title>
+      <link>https://candoeverything.github.io/2019/hive_bucket/</link>
+      <pubDate>Thu, 14 Mar 2019 23:10:32 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/hive_bucket/</guid>
+      <description>分桶表 分桶是将数据集分解成更容易管理的若干部分小的数据集的另一个技术。 **作用 ** 1：提高查询效率
+2 : 使得取样更加高效。 分桶原理： 对分桶字段进行hash 在对分桶数求余，求余结果就是进入那个桶。 语法 1:创建分桶表 create table if not exists cdl_bucket(id int, name string) clustered by (id ) into 4 buckets;  2：配置参数允许分桶 Set hive.enforce.bucketing=true ( 不设置的话，分桶没有效果) 3：导入数据到分桶表 insert overwrite table cdl_bucket select * from cdl_tmp; 注意：不能使用load装载的方式导入分桶表，不然分桶表无效
+分桶表及其随机抽样 语法： Select * from cdl_bucket tablesample(bucket x out of y on 分桶字段 );
+例子: hive (default)&amp;gt; select * from stu_buck tablesample(bucket 1 out of 4 on id); 注意：tablesample是抽样语句，语法：TABLESAMPLE(BUCKET x OUT OF y) 。 y必须是table总bucket数的倍数或者因子。hive根据y的大小，决定抽样的比例。例如，table总共分了4份，当y=2时，抽取(4&amp;frasl;2=)2个bucket的数据，当y=8时，抽取(4&amp;frasl;8=)1/2个bucket的数据（即抽取一个桶内的1/2的数据）。 x表示从哪个bucket开始抽取，如果需要取多个分区，以后的分区号为当前分区号加上y。例如，table总bucket数为4，tablesample(bucket 1 out of 2)，表示总共抽取（4/2=）2个bucket的数据，抽取第1(x)个和第3(x+y)个bucket的数据。 注意：x的值必须小于等于y的值，否则 FAILED: SemanticException [Error 10061]: Numerator should not be bigger than denominator in sample clause for table stu_buck</description>
+    </item>
+    
+    <item>
+      <title>Hive：内部表与外部表区别&#34;</title>
+      <link>https://candoeverything.github.io/2019/hive_table/</link>
+      <pubDate>Tue, 12 Mar 2019 22:56:00 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/hive_table/</guid>
+      <description>内部表： 概念：内部表也成为管理表。当我们删除一个外部表的时候，会把元数据连同数据一起删掉。所以内部表不适合去别人共享，一去使用。
+外部表 概念：外部表，Hive并非拥有表的所有所有数据，删除这张表时，只会把元数据删掉而不会删掉数据。
+使用场景： 当数据处理需要和别人一起共享数据的时候，则使用外部表。例如每天的网站日志的分析处理。 当数据以及处理完的结果可以使用内部表存储。  注意：当你试图去清空外部表的时候，会抛出一个错误。
+hive (default)&amp;gt; truncate table test2; FAILED: SemanticException [Error 10146]: Cannot truncate non-managed table test2
+default)&amp;gt; delete from test2 where id =7; FAILED: SemanticException [Error 10294]: Attempt to do update or delete using transaction manager that does not support these operations.
+内部表和外部表的转换 查看表的类型 hive (default)&amp;gt; desc formatted test2; 你就会看到Table Type对应的说明 例如（以下就是外部表的意思）： Table Type: EXTERNAL_TABLE
+将内部表修改为外部表 alter table test2 set tblproperties (‘EXTERNAL’=’TRUE’);</description>
+    </item>
+    
+    <item>
+      <title>Hive命令三种提交方式</title>
+      <link>https://candoeverything.github.io/2019/hive_3commit/</link>
+      <pubDate>Mon, 11 Mar 2019 22:43:21 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/hive_3commit/</guid>
+      <description>命令行界面 命令行界面是和hive交互最常用的方式 进入方式：${HIVE_HOME}bin/hive
+例如 hive&amp;gt; select * from test2; OK 2 3 Time taken: 1.549 seconds, Fetched: 2 row(s)  命令行一些常用的功能  自动补全功能：如果用户在输入的过程敲击Tab键，那么hive会帮你自动补全关键字或者函数，方便我们开发和减少我们开发时间。 显示当前数据库名字：在conf目录下的hive-site.xml加入  hive.cli.print.current.db true  显示字段名字  hive.cli.print.header true  提示:如果conf下没有hive-site.xml，则需要我们自己创建 &amp;lt;?xml-stylesheet type=&amp;ldquo;text/xsl&amp;rdquo; href=&amp;ldquo;configuration.xsl&amp;rdquo;?&amp;gt;   hive.cli.print.header true   hive.cli.print.current.db true   在hive使用hadoop命令 用户可以在hive使用hadoop命令，这样会更加高效写，因为在hive会在同一个线程执行这些命令，而在 bash shell需要每次执行都启动一个新的线程。 例如：hive (default)&amp;gt; dfs -ls /;  在bash shell上使用hive 使用 -e 不进入hive的交互窗口执行sql语句  bin/hive -e &amp;quot;select * from test2;&amp;quot;  使用-f 执行脚本中sql语句 文件的后缀为.</description>
+    </item>
+    
   </channel>
 </rss>

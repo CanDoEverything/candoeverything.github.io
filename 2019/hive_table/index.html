@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zk-CN">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  <meta name="author" content="Darren.Chen">
+  
+  
+  
+  <link rel="prev" href="https://candoeverything.github.io/2019/hive_3commit/" />
+  <link rel="next" href="https://candoeverything.github.io/2019/hive_bucket/" />
+  <link rel="canonical" href="https://candoeverything.github.io/2019/hive_table/" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           Hive：内部表与外部表区别&#34; | 首页
+       
+  </title>
+  <meta name="title" content="Hive：内部表与外部表区别&#34; | 首页">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  
+  
+ 
+
+<script type="application/ld+json">
+ "@context" : "http://schema.org",
+    "@type" : "BlogPosting",
+    "mainEntityOfPage": {
+         "@type": "WebPage",
+         "@id": "https:\/\/candoeverything.github.io\/"
+    },
+    "articleSection" : "posts",
+    "name" : "Hive：内部表与外部表区别\x22",
+    "headline" : "Hive：内部表与外部表区别\x22",
+    "description" : "内部表： 概念：内部表也成为管理表。当我们删除一个外部表的时候，会把元数据连同数据一起删掉。所以内部表不适合去别人共享，一去使用。\n外部表 概念：外部表，Hive并非拥有表的所有所有数据，删除这张表时，只会把元数据删掉而不会删掉数据。\n使用场景： 当数据处理需要和别人一起共享数据的时候，则使用外部表。例如每天的网站日志的分析处理。 当数据以及处理完的结果可以使用内部表存储。  注意：当你试图去清空外部表的时候，会抛出一个错误。\nhive (default)\x26gt; truncate table test2; FAILED: SemanticException [Error 10146]: Cannot truncate non-managed table test2\ndefault)\x26gt; delete from test2 where id =7; FAILED: SemanticException [Error 10294]: Attempt to do update or delete using transaction manager that does not support these operations.\n内部表和外部表的转换 查看表的类型 hive (default)\x26gt; desc formatted test2; 你就会看到Table Type对应的说明 例如（以下就是外部表的意思）： Table Type: EXTERNAL_TABLE\n将内部表修改为外部表 alter table test2 set tblproperties (‘EXTERNAL’=’TRUE’);",
+    "inLanguage" : "zk-CN",
+    "author" : "Darren.Chen",
+    "creator" : "Darren.Chen",
+    "publisher": "Darren.Chen",
+    "accountablePerson" : "Darren.Chen",
+    "copyrightHolder" : "Darren.Chen",
+    "copyrightYear" : "2019",
+    "datePublished": "2019-03-12 22:56:00 \x2b0800 CST",
+    "dateModified" : "2019-03-12 22:56:00 \x2b0800 CST",
+    "url" : "https:\/\/candoeverything.github.io\/2019\/hive_table\/",
+    "wordCount" : "75",
+    "keywords" : [ "Hadoop","Hive", "首页"]
+}
+</script>
+
+</head>
+
+  
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://candoeverything.github.io/">首页</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">博客</a>
+                
+                <a class="menu-item" href="/categories/" title="">分类</a>
+                
+                <a class="menu-item" href="/tags/" title="">标签</a>
+                
+                <a class="menu-item" href="/about/" title="">关于</a>
+                
+                <a class="menu-item" href="/about/" title="&gt;">&gt;</a>
+                
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://candoeverything.github.io/">首页</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">博客</a>
+                
+                <a class="menu-item" href="/categories/" title="">分类</a>
+                
+                <a class="menu-item" href="/tags/" title="">标签</a>
+                
+                <a class="menu-item" href="/about/" title="">关于</a>
+                
+                <a class="menu-item" href="/about/" title="&gt;">&gt;</a>
+                
+        </div>
+    </div>
+</nav>
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp" itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">Hive：内部表与外部表区别&#34;</h1>
+        <div class="post-meta">
+                Written by <a itemprop="name" href="https://candoeverything.github.io/" rel="author">Darren.Chen</a> with ♥ 
+                <span class="post-time">
+                on <time datetime=2019-03-12 itemprop="datePublished">March 12, 2019</time>
+                </span>
+                in
+                <i class="iconfont icon-folder"></i>
+                <span class="post-category">
+                        <a href="https://candoeverything.github.io/categories/hive/"> Hive </a>
+                        
+                </span>
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          
+
+<h1 id="内部表">内部表：</h1>
+
+<p><strong>概念</strong>：内部表也成为管理表。当我们删除一个外部表的时候，会把元数据连同数据一起删掉。所以内部表不适合去别人共享，一去使用。</p>
+
+<h1 id="外部表">外部表</h1>
+
+<p><strong>概念</strong>：外部表，Hive并非拥有表的所有所有数据，删除这张表时，只会把元数据删掉而不会删掉数据。</p>
+
+<h3 id="使用场景">使用场景：</h3>
+
+<pre><code>当数据处理需要和别人一起共享数据的时候，则使用外部表。例如每天的网站日志的分析处理。
+当数据以及处理完的结果可以使用内部表存储。
+</code></pre>
+
+<p><font size=4 color=#D2691E>注意：当你试图去清空外部表的时候，会抛出一个错误。</font></p>
+
+<p>hive (default)&gt; truncate table test2;
+FAILED: SemanticException [Error 10146]: Cannot truncate non-managed table test2</p>
+
+<p>default)&gt; delete from test2 where id =7;
+FAILED: SemanticException [Error 10294]: Attempt to do update or delete using transaction           manager that does not support these operations.</p>
+
+<h2 id="内部表和外部表的转换">内部表和外部表的转换</h2>
+
+<p><strong>查看表的类型</strong>
+hive (default)&gt; desc formatted test2;
+你就会看到Table Type对应的说明 例如（以下就是外部表的意思）：
+Table Type:             EXTERNAL_TABLE</p>
+
+<p><strong>将内部表修改为外部表</strong>
+alter table test2  set tblproperties (‘EXTERNAL’=’TRUE’);</p>
+
+<p><strong>将外部表修改为内部表</strong>
+alter table test2 set tblproperties (‘EXTERNAL’=’FALSE’);</p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>Darren.Chen </span>
+                </p>
+            
+           
+             
+            <p class="copyright-item">
+                    <span>Link:</span>
+                    <a href=https://candoeverything.github.io/2019/hive_table/>https://candoeverything.github.io/2019/hive_table/</span>
+            </p>
+            
+             
+            <p class="copyright-item lincese">
+                本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+            <section>
+            <i class="iconfont icon-tag"></i>Tag(s): 
+            
+            <span class="tag"><a href="https://candoeverything.github.io/tags/hadoop/">
+                    #Hadoop</a></span>
+            
+            <span class="tag"><a href="https://candoeverything.github.io/tags/hive/">
+                    #Hive</a></span>
+            
+            </section>
+        
+        <section>
+                <a href="javascript:window.history.back();">back</a></span> · 
+                <span><a href="https://candoeverything.github.io/">home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="https://candoeverything.github.io/2019/hive_3commit/" class="prev" rel="prev" title="Hive命令三种提交方式"><i class="iconfont icon-left"></i>&nbsp;Hive命令三种提交方式</a>
+         
+        
+        <a href="https://candoeverything.github.io/2019/hive_bucket/" class="next" rel="next" title="Hive分桶与随机抽样">Hive分桶与随机抽样&nbsp;<i class="iconfont icon-right"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+                 
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2019 - 2019</span>
+        
+        <span class="with-love">
+    	 <i class="iconfont icon-love"></i> 
+         </span>
+         
+            <span class="author" itemprop="copyrightHolder"><a href="https://candoeverything.github.io/">Darren.Chen</a> | </span> 
+         
+
+         
+		  <span>Powered by <a href="https://gohugo.io/" target="_blank" rel="external nofollow">Hugo</a> & <a href="https://github.com/liuzc/leaveit" target="_blank" rel="external nofollow">LeaveIt</a></span> 
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+     </div>
+  </body>
+</html>

@@ -314,5 +314,327 @@ doRollBack：若是传输过程中出现故障，数据没能全部传输成功�
 </description>
     </item>
     
+    <item>
+      <title>(转)hive数据倾斜优化策略</title>
+      <link>https://candoeverything.github.io/2019/hive_shujuqingxie/</link>
+      <pubDate>Sun, 17 Mar 2019 00:41:03 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/hive_shujuqingxie/</guid>
+      <description>
+
+&lt;h1 id=&#34;hive数据倾斜优化策略&#34;&gt;hive数据倾斜优化策略&lt;/h1&gt;
+
+&lt;h4 id=&#34;1-map端部分聚合&#34;&gt;1.Map端部分聚合&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt; 先看看下面这条SQL，由于用户的性别只有男和女两个值 （未知）。如果没有map端的部分聚合优化，map直接把groupby_key 当作reduce_key发送给reduce做聚合，就会导致计算不均衡的现象。虽然map有100万个，但是reduce只有两个在做聚合，每个reduce处理100亿条记录。
+&lt;code&gt;selectuser.gender,count(1) from user group by user.gende&lt;/code&gt;
+&lt;img src=&#34;https://img-blog.csdn.net/20180513124553357?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM1MDM2OTk1/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70&#34; alt=&#34;没开map端聚合产生的计算不均衡现象&#34; title=&#34;没开map端聚合产生的计算不均衡现象&#34; /&gt;
+没开map端聚合产生的计算不均衡现象&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;hive.map.aggr=true参数控制在group by的时候是否map局部聚合，这个参数默认是打开的。参数打开后的计算过程如下图。由于map端已经做了局部聚合，虽然还是只有两个reduce做最后的聚合，但是每个reduce只用处理100万行记录，相对优化前的100亿小了1万&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://img-blog.csdn.net/2018051312461266?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM1MDM2OTk1/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70&#34; alt=&#34;&#34; /&gt;
+     map端聚合打开map聚合开关缺省是打开的，但是不是所有的聚合都需要这个优化。考虑先面的sql,如果groupby_key是用户ID，因为用户ID没有重复的，因此map聚合没有太大意义，并且浪费资源。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;优化&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select user..id,count(1) from user group by user.id ；
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt; hive.groupby.mapaggr.checkinterval = 100000
+ Hive.map.aggr.hash.min.reduction=0.5
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt; 上面这两个参数控制关掉map聚合的策略。Map开始的时候先尝试给前100000 条记录做hash聚合，如果聚合后的记录数/100000&amp;gt;0.5说明这个groupby_key没有什么重复的，再继续做局部聚合没有意义，100000 以后就自动把聚合开关关掉，在map的log中会看到下面的提示：
+2011-02-23 06:46:11,206 WARN org.apache.hadoop.hive.ql.exec.GroupByOperator: Disable Hash Aggr: #hash table = 99999 #total = 100000 reduction = 0.0 minReduction = 0.52.&lt;/p&gt;
+
+&lt;h4 id=&#34;有distinct下的优化&#34;&gt;有distinct下的优化&lt;/h4&gt;
+
+&lt;p&gt;在数据量比较大的时候有distinct出现的时候，比如下面的sql,由于map需要保存所有的user.id
+,map聚合开关会自动关掉，导致出现计算不均衡的现象，只有2个redcue做聚合，每个reduce处理100亿条记录。数据量小的时候无所谓。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt; select user.gender,count(distinct user.id ) 
+from user group by user.gender  
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;通常这种情况都是在有distinct出现的时候，比如下面的sql,由于map需要保存所有的user.id
+,map聚合开关会自动关掉，导致出现计算不均衡的现象，只有2个redcue做聚合，每个reduce处理100亿条记录。
+&lt;img src=&#34;https://img-blog.csdn.net/20180513124737983?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM1MDM2OTk1/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;hive.groupby.skewindata = true&lt;/code&gt;
+当选项设定为 true，生成的查询计划会有两个 MR Job。第一个 MR Job 中，Map 的出结果会随机分布到 Reduce 中，每个 Reduce 做部分聚合操作，并输出结果，这样处理的果是相同的 Group By Key 有可能被分发到不同的 Reduce 中，从而达到负载均衡的目的
+&lt;img src=&#34;https://img-blog.csdn.net/20180513124752571?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM1MDM2OTk1/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70&#34; alt=&#34;&#34; /&gt;
+第二个 MR Job 再根据预处理的数据结果按照 Group By Key 分布到 Reduce 中（这个过程可保证相同的 Group By Key 被分布到同一个 Reduce 中），最后完成最终的聚合操作。
+&lt;img src=&#34;https://img-blog.csdn.net/20180513124805532?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM1MDM2OTk1/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70&#34; alt=&#34;&#34; /&gt;
+MR2 hive.groupby.skewindata 默认是关闭的，因此如果确定有不均衡的情况，需要手动打开这个开关。当然，并不是所有的有distinct的group by都需要打开这个开关，比如下面的sql。&lt;/p&gt;
+
+&lt;p&gt;select id,count (distinct gender) from user group by user.id 
+（每个ID都是唯一值，作为key进入Reducer，都已经已经均衡了）
+因为user.id 是一个散列的值，因此已经是计算均衡的了，所有的reduce都会均匀计算。只有在groupby_key不散列，而distinct_key散列的情况下才需要打开这个开关，其他的情况map聚合优化就足矣。 &lt;/p&gt;
+
+&lt;h4 id=&#34;join-中的计算均衡优化在hive&#34;&gt;Join 中的计算均衡优化在hive&lt;/h4&gt;
+
+&lt;p&gt;join操作一般都是在reduce阶段完成的，写sql的时候要注意把小表放在join的左边，原因是在 Join 操作的 Reduce 阶段，位于 Join 操作符左边的表的内容会被加载进内存，将条目少的表放在左边，可以有效减少发生 out of memory 错误的几率。 一个大表和一个配置表的reduce join经常会引起计算不均衡的情况。比如配置表gender_config(gender string,gender_id int)。把“男”“女”字符串映射成一个id。配置表和上面的user表join的sql如下：
+&lt;code&gt;select user.id  gender_config.gender_id from gender_config join user on gender_config.gender=user.gender gender &lt;/code&gt;
+只有男女两个值，hive处理join的时候把join_key作为reduce_key,因此会出现和group by类似的reduce计算不均衡现象，只有两个reduce参与计算，每个reduce计算100亿条记录。&lt;/p&gt;
+
+&lt;p&gt;一个大表和一个小配置表的map join流程图 每个map会把小表读到hash table，然后和大表做hash join。因此map join的关键是小表能放入map进程的内存，如果内存放不下会序列化到硬盘，效率会直线下降。 成千上万个map从hdfs读这个小表进自己的内存，使得小表的读操作变成成个join的瓶颈，甚至有些时候有些map读这个小表会失败（因为同时有太多进程读了），最后导致join失败。临时解决办法是增加小表的副本个数。下一步优化可以考虑把小表放入Distributed Cache里，map读本地文件即可。
+1）开启 MapJoin 参数设置：
+（1）设置自动选择 Mapjoinset hive.auto.convert.join = true; 默认为 true
+（2）大表小表的阀值设置（默认 25M 一下认为是小
+set hive.mapjoin.smalltable.filesize=25000000;
+原文： &lt;a href=&#34;https://blog.csdn.net/qq_35036995/article/details/80298403&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;https://blog.csdn.net/qq_35036995/article/details/80298403&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;在最新的hive，无论大表join小表还是小表join大表，效率都已经差不多了，&lt;/strong&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Hive的一些调优</title>
+      <link>https://candoeverything.github.io/2019/hive_tiaoyou/</link>
+      <pubDate>Sat, 16 Mar 2019 23:35:56 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/hive_tiaoyou/</guid>
+      <description>
+
+&lt;h2 id=&#34;笛卡尔积&#34;&gt;笛卡尔积&lt;/h2&gt;
+
+&lt;p&gt;尽量避免笛卡尔积，join的时候不加on条件，或者无效的on条件，Hive只能使用1个reducer来完成笛卡尔积。&lt;/p&gt;
+
+&lt;h2 id=&#34;fetch抓取&#34;&gt;Fetch抓取&lt;/h2&gt;
+
+&lt;p&gt;Fetch抓取：是指hive在某些情况下不必使用MapReducer计算，例如全局查询的时候（select * from table）。Hive可以简单的读取表对应目录下的文件，然后输出到控制台即可。
+* 用法：
+&lt;code&gt;set hive.fetch.task.conversion=more;&lt;/code&gt;
+* &lt;strong&gt;注意&lt;/strong&gt;：
+在hive-default.xml.template文件中hive.fetch.task.conversion默认是more，老版本hive默认是minimal，该属性修改为more以后，在全局查找、字段查找、limit查找等都不走mapreduce，在某些操作下，可以大大减少了时间。&lt;/p&gt;
+
+&lt;h2 id=&#34;开启本地模式&#34;&gt;开启本地模式&lt;/h2&gt;
+
+&lt;p&gt;在数据集比较小的情况下，我们不必需要在集群中运行和处理数据集，因为在这种情况下，查询触发任务的事件比实际执行job执行的实际还要多。在大多数数据比较小的情况下，我们只需要在一台节点上处理所有任务，这样可以大大减少执行世间。
+* &lt;strong&gt;用法&lt;/strong&gt;：
+&lt;code&gt;set hive.exec.mode.local.auto=true;&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;行列过滤&#34;&gt;行列过滤&lt;/h2&gt;
+
+&lt;p&gt;Hive会将一个查询转化成一个或者多个阶段。这样的阶段可以是MapReduce阶段、抽样阶段、合并阶段、limit阶段。或者Hive执行过程中可能需要的其他阶段。默认情况下，Hive一次只会执行一个阶段。不过，某个特定的job可能包含众多的阶段，而这些阶段可能并非完全互相依赖的，也就是说有些阶段是可以并行执行的，这样可能使得整个job的执行时间缩短。不过，如果有更多的阶段可以并行执行，那么job可能就越快完成。
+* &lt;strong&gt;列过滤&lt;/strong&gt;
+        在select下，我们只可能值查询我们需要的字段，避免使用*；
+*** 行过滤**
+        在分区剪裁中，当使用外关联时，如果将副表的过滤条件写在Where后面，那么就会先全表关联，之后再过滤&lt;/p&gt;
+
+&lt;h2 id=&#34;并行处理&#34;&gt;并行处理&lt;/h2&gt;
+
+&lt;p&gt;Hive会将一个查询转化成一个或者多个阶段。这样的阶段可以是MapReduce阶段、抽样阶段、合并阶段、limit阶段。或者Hive执行过程中可能需要的其他阶段。默认情况下，Hive一次只会执行一个阶段。不过，某个特定的job可能包含众多的阶段，而这些阶段可能并非完全互相依赖的，也就是说有些阶段是可以并行执行的，这样可能使得整个job的执行时间缩短。不过，如果有更多的阶段可以并行执行，那么job可能就越快完成。
+* &lt;strong&gt;语法&lt;/strong&gt;
+        set hive.exec.parallel=true;              //打开任务并行执行
+        set hive.exec.parallel.thread.number=16;  //同一个sql允许最大并行度，默认为8。
+* &lt;strong&gt;应用场景举例&lt;/strong&gt;：
+    ```
+ Select * from table
+Union
+Select * from table2；&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;这样 Select * from table 与Select * from table2 两个独立的阶段就会并行处理，减少时间。
+* **注意**
+	如果job中并行阶段增多，那么集群利用率就会增加。
+## 动态分区调整
+关系型数据库中，对分区表Insert数据时候，数据库自动会根据分区字段的值，将数据插入到相应的分区中，Hive中也提供了类似的机制，即动态分区(Dynamic Partition)，只不过，使用Hive的动态分区，需要进行相应的配置。
+**1．开启动态分区参数设置**
+（1）开启动态分区功能（默认true，开启）
+`hive.exec.dynamic.partition=true`
+（2）设置为非严格模式（动态分区的模式，默认strict，表示必须指定至少一个分区为静态分区，nonstrict模式表示允许所有的分区字段都可以使用动态分区。）
+`hive.exec.dynamic.partition.mode=nonstrict`
+（3）在所有执行MR的节点上，最大一共可以创建多少个动态分区。
+`hive.exec.max.dynamic.partitions=1000`
+	（4）在每个执行MR的节点上，最大可以创建多少个动态分区。该参数需要根据实际的数据来设定。比如：源数据中包含了一年的数据，即day字段有365个值，那么该参数就需要设置成大于365，如果使用默认值100，则会报错。
+`hive.exec.max.dynamic.partitions.pernode=100`
+（5）整个MR Job中，最大可以创建多少个HDFS文件。
+`hive.exec.max.created.files=100000`
+（6）当有空分区生成时，是否抛出异常。一般不需要设置。
+`hive.error.on.empty.partition=false`
+## Jvm重用
+JVM重用是Hadoop调优参数的内容，其对Hive的性能具有非常大的影响，特别是对于很难避免小文件的场景或task特别多的场景，这类场景大多数执行时间都很短。
+Hadoop的默认配置通常是使用派生JVM来执行map和Reduce任务的。这时JVM的启动过程可能会造成相当大的开销，尤其是执行的job包含有成百上千task任务的情况。JVM重用可以使得JVM实例在同一个job中重新使用N次。N的值可以在Hadoop的mapred-site.xml文件中进行配置。通常在10-20之间，具体多少需要根据具体业务场景测试得出。默认是1；
+```shell
+&amp;lt;property&amp;gt;
+  &amp;lt;name&amp;gt;mapreduce.job.jvm.numtasks&amp;lt;/name&amp;gt;
+  &amp;lt;value&amp;gt;10&amp;lt;/value&amp;gt; 
+  &amp;lt;/description&amp;gt;
+&amp;lt;/property&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个功能的缺点是，开启JVM重用将一直占用使用到的task插槽，以便进行重用，直到任务完成后才能释放。如果某个“不平衡的”job中有某几个reduce task执行的时间要比其他Reduce task消耗的时间多的多的话，那么保留的插槽就会一直空闲着却无法被其他的job使用，直到所有的task都结束了才会释放。&lt;/p&gt;
+
+&lt;h2 id=&#34;推测执行&#34;&gt;推测执行&lt;/h2&gt;
+
+&lt;p&gt;在分布式集群环境下，因为程序Bug（包括Hadoop本身的bug），负载不均衡或者资源分布不均等原因，会造成同一个作业的多个任务之间运行速度不一致，有些任务的运行速度可能明显慢于其他任务（比如一个作业的某个任务进度只有50%，而其他所有任务已经运行完毕），则这些任务会拖慢作业的整体执行进度。为了避免这种情况发生，Hadoop采用了推测执行（Speculative Execution）机制，它根据一定的法则推测出“拖后腿”的任务，并为这样的任务启动一个备份任务，让该任务与原始任务同时处理同一份数据，并最终选用最先成功运行完成任务的计算结果作为最终结果。
+* &lt;strong&gt;设置开启推测执行参数：Hadoop的mapred-site.xml文件中进行配置&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;&amp;lt;property&amp;gt;
+  &amp;lt;name&amp;gt;mapreduce.map.speculative&amp;lt;/name&amp;gt;
+  &amp;lt;value&amp;gt;true&amp;lt;/value&amp;gt;
+  &amp;lt;description&amp;gt;If true, then multiple instances of some map tasks 
+               may be executed in parallel.&amp;lt;/description&amp;gt;
+&amp;lt;/property&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;&amp;lt;property&amp;gt;
+  &amp;lt;name&amp;gt;mapreduce.reduce.speculative&amp;lt;/name&amp;gt;
+  &amp;lt;value&amp;gt;true&amp;lt;/value&amp;gt;
+  &amp;lt;description&amp;gt;If true, then multiple instances of some reduce tasks 
+               may be executed in parallel.&amp;lt;/description&amp;gt;
+&amp;lt;/property&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;也可以通过hive本身也提供了配置项来控制reduce-side的推测执行&lt;/strong&gt;
+&lt;code&gt;shell
+&amp;lt;property&amp;gt;
+&amp;lt;name&amp;gt;hive.mapred.reduce.tasks.speculative.execution&amp;lt;/name&amp;gt;
+&amp;lt;value&amp;gt;true&amp;lt;/value&amp;gt;
+&amp;lt;description&amp;gt;Whether speculative execution for reducers should be turned on. &amp;lt;/description&amp;gt;
+&amp;lt;/property&amp;gt;
+&lt;/code&gt;
+&lt;strong&gt;关于调优这些推测执行变量，还很难给一个具体的建议。&lt;/strong&gt;
+- 如果用户对于运行时的偏差非常敏感的话，那么可以将这些功能关闭掉。
+- 如果用户因为输入数据量很大而需要执行长时间的map或者Reduce task的话，那么启动推测执行造成的浪费是非常巨大大。&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Hive常用的参数配置</title>
+      <link>https://candoeverything.github.io/2019/hive_sist/</link>
+      <pubDate>Fri, 15 Mar 2019 23:15:28 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/hive_sist/</guid>
+      <description>
+
+&lt;h1 id=&#34;hive常用的参数配置&#34;&gt;Hive常用的参数配置&lt;/h1&gt;
+
+&lt;p&gt;&lt;strong&gt;显示当前数据库名字&lt;/strong&gt;
+在conf目录下的hive-sist.xml配置（若hive-sist.xml不存在，则自行创建）&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;&amp;lt;property&amp;gt;
+&amp;lt;name&amp;gt;hive.cli.print.current.db&amp;lt;/name&amp;gt;
+&amp;lt;value&amp;gt;true&amp;lt;/value&amp;gt;
+&amp;lt;/property&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;显示字段配置&lt;/strong&gt;
+在conf目录下的hive-sist.xml配置（若hive-sist.xml不存在，则自行创建）&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;&amp;lt;property&amp;gt;
+&amp;lt;name&amp;gt;hive.cli.print.header&amp;lt;/name&amp;gt;
+&amp;lt;value&amp;gt;true&amp;lt;/value&amp;gt;
+&amp;lt;/property&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;自定义hive运行日志路径&lt;/strong&gt;
+·hive运行日志目录默认在/temp/用户名/hive.log
+·修改hive运行日志路径：&lt;/p&gt;
+
+&lt;p&gt;1：将conf下的hive-log4j.properties.template重命名为hive-log4j.properties
+2：vim hive-log4j.properties  找到hive.log.dir 写入你想要的路径即可&lt;/p&gt;
+
+&lt;p&gt;例如：hive.log.dir=/opt/module/hive/log（log目录可以不用提前创建好，hive会帮你自动创建）&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Hive分桶与随机抽样</title>
+      <link>https://candoeverything.github.io/2019/hive_bucket/</link>
+      <pubDate>Thu, 14 Mar 2019 23:10:32 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/hive_bucket/</guid>
+      <description>
+
+&lt;h1 id=&#34;分桶表&#34;&gt;分桶表&lt;/h1&gt;
+
+&lt;p&gt;分桶是将数据集分解成更容易管理的若干部分小的数据集的另一个技术。
+**作用 **
+1：提高查询效率&lt;br /&gt;
+2 :  使得取样更加高效。
+&lt;strong&gt;分桶原理：&lt;/strong&gt;
+对分桶字段进行hash 在对分桶数求余，求余结果就是进入那个桶。
+&lt;strong&gt;语法&lt;/strong&gt;
+1:创建分桶表
+&lt;code&gt;create table if not exists cdl_bucket(id int, name string) clustered by (id ) into 4 buckets;
+&lt;/code&gt;
+2：配置参数允许分桶
+&lt;code&gt;Set hive.enforce.bucketing=true&lt;/code&gt; &lt;font size=3 color=#D2691E&gt;( 不设置的话，分桶没有效果)&lt;/font&gt;
+3：导入数据到分桶表
+&lt;code&gt;insert overwrite table cdl_bucket select * from cdl_tmp;&lt;/code&gt;
+&lt;font size=3 color=red&gt;注意：不能使用load装载的方式导入分桶表，不然分桶表无效&lt;/font&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;分桶表及其随机抽样&#34;&gt;分桶表及其随机抽样&lt;/h1&gt;
+
+&lt;p&gt;语法：
+&lt;code&gt;Select * from cdl_bucket tablesample(bucket x out of y on 分桶字段 );&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;例子:
+&lt;code&gt;hive (default)&amp;gt; select * from stu_buck tablesample(bucket 1 out of 4 on id);&lt;/code&gt;
+&lt;font size=3 color=red&gt;
+注意：tablesample是抽样语句，语法：TABLESAMPLE(BUCKET x OUT OF y) 。
+&lt;strong&gt;y&lt;/strong&gt;必须是table总bucket数的倍数或者因子。hive根据y的大小，决定抽样的比例。例如，table总共分了4份，当y=2时，抽取(&lt;sup&gt;4&lt;/sup&gt;&amp;frasl;&lt;sub&gt;2&lt;/sub&gt;=)2个bucket的数据，当y=8时，抽取(&lt;sup&gt;4&lt;/sup&gt;&amp;frasl;&lt;sub&gt;8&lt;/sub&gt;=)1/2个bucket的数据（即抽取一个桶内的1/2的数据）。
+&lt;strong&gt;x&lt;/strong&gt;表示从哪个bucket开始抽取，如果需要取多个分区，以后的分区号为当前分区号加上y。例如，table总bucket数为4，tablesample(bucket 1 out of 2)，表示总共抽取（4/2=）2个bucket的数据，抽取第1(x)个和第3(x+y)个bucket的数据。
+注意：x的值必须小于等于y的值，否则
+FAILED: SemanticException [Error 10061]: Numerator should not be bigger than denominator in sample clause for table stu_buck&lt;/font&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;也可以通过制定抽样百分之几
+hive (default)&amp;gt; select * from stu_buck tablesample(50 percent);
+抽取50%的数据
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Hive：内部表与外部表区别&#34;</title>
+      <link>https://candoeverything.github.io/2019/hive_table/</link>
+      <pubDate>Tue, 12 Mar 2019 22:56:00 +0800</pubDate>
+      
+      <guid>https://candoeverything.github.io/2019/hive_table/</guid>
+      <description>
+
+&lt;h1 id=&#34;内部表&#34;&gt;内部表：&lt;/h1&gt;
+
+&lt;p&gt;&lt;strong&gt;概念&lt;/strong&gt;：内部表也成为管理表。当我们删除一个外部表的时候，会把元数据连同数据一起删掉。所以内部表不适合去别人共享，一去使用。&lt;/p&gt;
+
+&lt;h1 id=&#34;外部表&#34;&gt;外部表&lt;/h1&gt;
+
+&lt;p&gt;&lt;strong&gt;概念&lt;/strong&gt;：外部表，Hive并非拥有表的所有所有数据，删除这张表时，只会把元数据删掉而不会删掉数据。&lt;/p&gt;
+
+&lt;h3 id=&#34;使用场景&#34;&gt;使用场景：&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;当数据处理需要和别人一起共享数据的时候，则使用外部表。例如每天的网站日志的分析处理。
+当数据以及处理完的结果可以使用内部表存储。
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;font size=4 color=#D2691E&gt;注意：当你试图去清空外部表的时候，会抛出一个错误。&lt;/font&gt;&lt;/p&gt;
+
+&lt;p&gt;hive (default)&amp;gt; truncate table test2;
+FAILED: SemanticException [Error 10146]: Cannot truncate non-managed table test2&lt;/p&gt;
+
+&lt;p&gt;default)&amp;gt; delete from test2 where id =7;
+FAILED: SemanticException [Error 10294]: Attempt to do update or delete using transaction           manager that does not support these operations.&lt;/p&gt;
+
+&lt;h2 id=&#34;内部表和外部表的转换&#34;&gt;内部表和外部表的转换&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;查看表的类型&lt;/strong&gt;
+hive (default)&amp;gt; desc formatted test2;
+你就会看到Table Type对应的说明 例如（以下就是外部表的意思）：
+Table Type:             EXTERNAL_TABLE&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;将内部表修改为外部表&lt;/strong&gt;
+alter table test2  set tblproperties (‘EXTERNAL’=’TRUE’);&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;将外部表修改为内部表&lt;/strong&gt;
+alter table test2 set tblproperties (‘EXTERNAL’=’FALSE’);&lt;/p&gt;
+</description>
+    </item>
+    
   </channel>
 </rss>

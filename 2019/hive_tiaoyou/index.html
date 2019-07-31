@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zk-CN">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  <meta name="author" content="Darren.Chen">
+  
+  
+  
+  <link rel="prev" href="https://candoeverything.github.io/2019/hive_sist/" />
+  <link rel="next" href="https://candoeverything.github.io/2019/hive_shujuqingxie/" />
+  <link rel="canonical" href="https://candoeverything.github.io/2019/hive_tiaoyou/" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           Hive的一些调优 | 首页
+       
+  </title>
+  <meta name="title" content="Hive的一些调优 | 首页">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  
+  
+ 
+
+<script type="application/ld+json">
+ "@context" : "http://schema.org",
+    "@type" : "BlogPosting",
+    "mainEntityOfPage": {
+         "@type": "WebPage",
+         "@id": "https:\/\/candoeverything.github.io\/"
+    },
+    "articleSection" : "posts",
+    "name" : "Hive的一些调优",
+    "headline" : "Hive的一些调优",
+    "description" : "笛卡尔积 尽量避免笛卡尔积，join的时候不加on条件，或者无效的on条件，Hive只能使用1个reducer来完成笛卡尔积。\nFetch抓取 Fetch抓取：是指hive在某些情况下不必使用MapReducer计算，例如全局查询的时候（select * from table）。Hive可以简单的读取表对应目录下的文件，然后输出到控制台即可。 * 用法： set hive.fetch.task.conversion=more; * 注意： 在hive-default.xml.template文件中hive.fetch.task.conversion默认是more，老版本hive默认是minimal，该属性修改为more以后，在全局查找、字段查找、limit查找等都不走mapreduce，在某些操作下，可以大大减少了时间。\n开启本地模式 在数据集比较小的情况下，我们不必需要在集群中运行和处理数据集，因为在这种情况下，查询触发任务的事件比实际执行job执行的实际还要多。在大多数数据比较小的情况下，我们只需要在一台节点上处理所有任务，这样可以大大减少执行世间。 * 用法： set hive.exec.mode.local.auto=true;\n行列过滤 Hive会将一个查询转化成一个或者多个阶段。这样的阶段可以是MapReduce阶段、抽样阶段、合并阶段、limit阶段。或者Hive执行过程中可能需要的其他阶段。默认情况下，Hive一次只会执行一个阶段。不过，某个特定的job可能包含众多的阶段，而这些阶段可能并非完全互相依赖的，也就是说有些阶段是可以并行执行的，这样可能使得整个job的执行时间缩短。不过，如果有更多的阶段可以并行执行，那么job可能就越快完成。 * 列过滤 在select下，我们只可能值查询我们需要的字段，避免使用*； *** 行过滤** 在分区剪裁中，当使用外关联时，如果将副表的过滤条件写在Where后面，那么就会先全表关联，之后再过滤\n并行处理 Hive会将一个查询转化成一个或者多个阶段。这样的阶段可以是MapReduce阶段、抽样阶段、合并阶段、limit阶段。或者Hive执行过程中可能需要的其他阶段。默认情况下，Hive一次只会执行一个阶段。不过，某个特定的job可能包含众多的阶段，而这些阶段可能并非完全互相依赖的，也就是说有些阶段是可以并行执行的，这样可能使得整个job的执行时间缩短。不过，如果有更多的阶段可以并行执行，那么job可能就越快完成。 * 语法 set hive.exec.parallel=true; \/\/打开任务并行执行 set hive.exec.parallel.thread.number=16; \/\/同一个sql允许最大并行度，默认为8。 * 应用场景举例： ``` Select * from table Union Select * from table2；\n这样 Select * from table 与Select * from table2 两个独立的阶段就会并行处理，减少时间。 * **注意** 如果job中并行阶段增多，那么集群利用率就会增加。 ## 动态分区调整 关系型数据库中，对分区表Insert数据时候，数据库自动会根据分区字段的值，将数据插入到相应的分区中，Hive中也提供了类似的机制，即动态分区(Dynamic Partition)，只不过，使用Hive的动态分区，需要进行相应的配置。 **1．开启动态分区参数设置** （1）开启动态分区功能（默认true，开启） `hive.",
+    "inLanguage" : "zk-CN",
+    "author" : "Darren.Chen",
+    "creator" : "Darren.Chen",
+    "publisher": "Darren.Chen",
+    "accountablePerson" : "Darren.Chen",
+    "copyrightHolder" : "Darren.Chen",
+    "copyrightYear" : "2019",
+    "datePublished": "2019-03-16 23:35:56 \x2b0800 CST",
+    "dateModified" : "2019-03-16 23:35:56 \x2b0800 CST",
+    "url" : "https:\/\/candoeverything.github.io\/2019\/hive_tiaoyou\/",
+    "wordCount" : "157",
+    "keywords" : [ "Hadoop","Hive", "首页"]
+}
+</script>
+
+</head>
+
+  
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://candoeverything.github.io/">首页</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">博客</a>
+                
+                <a class="menu-item" href="/categories/" title="">分类</a>
+                
+                <a class="menu-item" href="/tags/" title="">标签</a>
+                
+                <a class="menu-item" href="/about/" title="">关于</a>
+                
+                <a class="menu-item" href="/about/" title="&gt;">&gt;</a>
+                
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://candoeverything.github.io/">首页</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">博客</a>
+                
+                <a class="menu-item" href="/categories/" title="">分类</a>
+                
+                <a class="menu-item" href="/tags/" title="">标签</a>
+                
+                <a class="menu-item" href="/about/" title="">关于</a>
+                
+                <a class="menu-item" href="/about/" title="&gt;">&gt;</a>
+                
+        </div>
+    </div>
+</nav>
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp" itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">Hive的一些调优</h1>
+        <div class="post-meta">
+                Written by <a itemprop="name" href="https://candoeverything.github.io/" rel="author">Darren.Chen</a> with ♥ 
+                <span class="post-time">
+                on <time datetime=2019-03-16 itemprop="datePublished">March 16, 2019</time>
+                </span>
+                in
+                <i class="iconfont icon-folder"></i>
+                <span class="post-category">
+                        <a href="https://candoeverything.github.io/categories/hive/"> Hive </a>
+                        
+                </span>
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          
+
+<h2 id="笛卡尔积">笛卡尔积</h2>
+
+<p>尽量避免笛卡尔积，join的时候不加on条件，或者无效的on条件，Hive只能使用1个reducer来完成笛卡尔积。</p>
+
+<h2 id="fetch抓取">Fetch抓取</h2>
+
+<p>Fetch抓取：是指hive在某些情况下不必使用MapReducer计算，例如全局查询的时候（select * from table）。Hive可以简单的读取表对应目录下的文件，然后输出到控制台即可。
+* 用法：
+<code>set hive.fetch.task.conversion=more;</code>
+* <strong>注意</strong>：
+在hive-default.xml.template文件中hive.fetch.task.conversion默认是more，老版本hive默认是minimal，该属性修改为more以后，在全局查找、字段查找、limit查找等都不走mapreduce，在某些操作下，可以大大减少了时间。</p>
+
+<h2 id="开启本地模式">开启本地模式</h2>
+
+<p>在数据集比较小的情况下，我们不必需要在集群中运行和处理数据集，因为在这种情况下，查询触发任务的事件比实际执行job执行的实际还要多。在大多数数据比较小的情况下，我们只需要在一台节点上处理所有任务，这样可以大大减少执行世间。
+* <strong>用法</strong>：
+<code>set hive.exec.mode.local.auto=true;</code></p>
+
+<h2 id="行列过滤">行列过滤</h2>
+
+<p>Hive会将一个查询转化成一个或者多个阶段。这样的阶段可以是MapReduce阶段、抽样阶段、合并阶段、limit阶段。或者Hive执行过程中可能需要的其他阶段。默认情况下，Hive一次只会执行一个阶段。不过，某个特定的job可能包含众多的阶段，而这些阶段可能并非完全互相依赖的，也就是说有些阶段是可以并行执行的，这样可能使得整个job的执行时间缩短。不过，如果有更多的阶段可以并行执行，那么job可能就越快完成。
+* <strong>列过滤</strong>
+        在select下，我们只可能值查询我们需要的字段，避免使用*；
+*** 行过滤**
+        在分区剪裁中，当使用外关联时，如果将副表的过滤条件写在Where后面，那么就会先全表关联，之后再过滤</p>
+
+<h2 id="并行处理">并行处理</h2>
+
+<p>Hive会将一个查询转化成一个或者多个阶段。这样的阶段可以是MapReduce阶段、抽样阶段、合并阶段、limit阶段。或者Hive执行过程中可能需要的其他阶段。默认情况下，Hive一次只会执行一个阶段。不过，某个特定的job可能包含众多的阶段，而这些阶段可能并非完全互相依赖的，也就是说有些阶段是可以并行执行的，这样可能使得整个job的执行时间缩短。不过，如果有更多的阶段可以并行执行，那么job可能就越快完成。
+* <strong>语法</strong>
+        set hive.exec.parallel=true;              //打开任务并行执行
+        set hive.exec.parallel.thread.number=16;  //同一个sql允许最大并行度，默认为8。
+* <strong>应用场景举例</strong>：
+    ```
+ Select * from table
+Union
+Select * from table2；</p>
+
+<pre><code>这样 Select * from table 与Select * from table2 两个独立的阶段就会并行处理，减少时间。
+* **注意**
+	如果job中并行阶段增多，那么集群利用率就会增加。
+## 动态分区调整
+关系型数据库中，对分区表Insert数据时候，数据库自动会根据分区字段的值，将数据插入到相应的分区中，Hive中也提供了类似的机制，即动态分区(Dynamic Partition)，只不过，使用Hive的动态分区，需要进行相应的配置。
+**1．开启动态分区参数设置**
+（1）开启动态分区功能（默认true，开启）
+`hive.exec.dynamic.partition=true`
+（2）设置为非严格模式（动态分区的模式，默认strict，表示必须指定至少一个分区为静态分区，nonstrict模式表示允许所有的分区字段都可以使用动态分区。）
+`hive.exec.dynamic.partition.mode=nonstrict`
+（3）在所有执行MR的节点上，最大一共可以创建多少个动态分区。
+`hive.exec.max.dynamic.partitions=1000`
+	（4）在每个执行MR的节点上，最大可以创建多少个动态分区。该参数需要根据实际的数据来设定。比如：源数据中包含了一年的数据，即day字段有365个值，那么该参数就需要设置成大于365，如果使用默认值100，则会报错。
+`hive.exec.max.dynamic.partitions.pernode=100`
+（5）整个MR Job中，最大可以创建多少个HDFS文件。
+`hive.exec.max.created.files=100000`
+（6）当有空分区生成时，是否抛出异常。一般不需要设置。
+`hive.error.on.empty.partition=false`
+## Jvm重用
+JVM重用是Hadoop调优参数的内容，其对Hive的性能具有非常大的影响，特别是对于很难避免小文件的场景或task特别多的场景，这类场景大多数执行时间都很短。
+Hadoop的默认配置通常是使用派生JVM来执行map和Reduce任务的。这时JVM的启动过程可能会造成相当大的开销，尤其是执行的job包含有成百上千task任务的情况。JVM重用可以使得JVM实例在同一个job中重新使用N次。N的值可以在Hadoop的mapred-site.xml文件中进行配置。通常在10-20之间，具体多少需要根据具体业务场景测试得出。默认是1；
+```shell
+&lt;property&gt;
+  &lt;name&gt;mapreduce.job.jvm.numtasks&lt;/name&gt;
+  &lt;value&gt;10&lt;/value&gt; 
+  &lt;/description&gt;
+&lt;/property&gt;
+</code></pre>
+
+<p>这个功能的缺点是，开启JVM重用将一直占用使用到的task插槽，以便进行重用，直到任务完成后才能释放。如果某个“不平衡的”job中有某几个reduce task执行的时间要比其他Reduce task消耗的时间多的多的话，那么保留的插槽就会一直空闲着却无法被其他的job使用，直到所有的task都结束了才会释放。</p>
+
+<h2 id="推测执行">推测执行</h2>
+
+<p>在分布式集群环境下，因为程序Bug（包括Hadoop本身的bug），负载不均衡或者资源分布不均等原因，会造成同一个作业的多个任务之间运行速度不一致，有些任务的运行速度可能明显慢于其他任务（比如一个作业的某个任务进度只有50%，而其他所有任务已经运行完毕），则这些任务会拖慢作业的整体执行进度。为了避免这种情况发生，Hadoop采用了推测执行（Speculative Execution）机制，它根据一定的法则推测出“拖后腿”的任务，并为这样的任务启动一个备份任务，让该任务与原始任务同时处理同一份数据，并最终选用最先成功运行完成任务的计算结果作为最终结果。
+* <strong>设置开启推测执行参数：Hadoop的mapred-site.xml文件中进行配置</strong></p>
+
+<pre><code class="language-shell">&lt;property&gt;
+  &lt;name&gt;mapreduce.map.speculative&lt;/name&gt;
+  &lt;value&gt;true&lt;/value&gt;
+  &lt;description&gt;If true, then multiple instances of some map tasks 
+               may be executed in parallel.&lt;/description&gt;
+&lt;/property&gt;
+</code></pre>
+
+<pre><code class="language-shell">&lt;property&gt;
+  &lt;name&gt;mapreduce.reduce.speculative&lt;/name&gt;
+  &lt;value&gt;true&lt;/value&gt;
+  &lt;description&gt;If true, then multiple instances of some reduce tasks 
+               may be executed in parallel.&lt;/description&gt;
+&lt;/property&gt;
+</code></pre>
+
+<ul>
+<li><strong>也可以通过hive本身也提供了配置项来控制reduce-side的推测执行</strong>
+<code>shell
+&lt;property&gt;
+&lt;name&gt;hive.mapred.reduce.tasks.speculative.execution&lt;/name&gt;
+&lt;value&gt;true&lt;/value&gt;
+&lt;description&gt;Whether speculative execution for reducers should be turned on. &lt;/description&gt;
+&lt;/property&gt;
+</code>
+<strong>关于调优这些推测执行变量，还很难给一个具体的建议。</strong>
+- 如果用户对于运行时的偏差非常敏感的话，那么可以将这些功能关闭掉。
+- 如果用户因为输入数据量很大而需要执行长时间的map或者Reduce task的话，那么启动推测执行造成的浪费是非常巨大大。</li>
+</ul>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>Darren.Chen </span>
+                </p>
+            
+           
+             
+            <p class="copyright-item">
+                    <span>Link:</span>
+                    <a href=https://candoeverything.github.io/2019/hive_tiaoyou/>https://candoeverything.github.io/2019/hive_tiaoyou/</span>
+            </p>
+            
+             
+            <p class="copyright-item lincese">
+                本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+            <section>
+            <i class="iconfont icon-tag"></i>Tag(s): 
+            
+            <span class="tag"><a href="https://candoeverything.github.io/tags/hadoop/">
+                    #Hadoop</a></span>
+            
+            <span class="tag"><a href="https://candoeverything.github.io/tags/hive/">
+                    #Hive</a></span>
+            
+            </section>
+        
+        <section>
+                <a href="javascript:window.history.back();">back</a></span> · 
+                <span><a href="https://candoeverything.github.io/">home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="https://candoeverything.github.io/2019/hive_sist/" class="prev" rel="prev" title="Hive常用的参数配置"><i class="iconfont icon-left"></i>&nbsp;Hive常用的参数配置</a>
+         
+        
+        <a href="https://candoeverything.github.io/2019/hive_shujuqingxie/" class="next" rel="next" title="(转)hive数据倾斜优化策略">(转)hive数据倾斜优化策略&nbsp;<i class="iconfont icon-right"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+                 
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2019 - 2019</span>
+        
+        <span class="with-love">
+    	 <i class="iconfont icon-love"></i> 
+         </span>
+         
+            <span class="author" itemprop="copyrightHolder"><a href="https://candoeverything.github.io/">Darren.Chen</a> | </span> 
+         
+
+         
+		  <span>Powered by <a href="https://gohugo.io/" target="_blank" rel="external nofollow">Hugo</a> & <a href="https://github.com/liuzc/leaveit" target="_blank" rel="external nofollow">LeaveIt</a></span> 
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+     </div>
+  </body>
+</html>

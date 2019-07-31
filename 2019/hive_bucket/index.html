@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zk-CN">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  <meta name="author" content="Darren.Chen">
+  
+  
+  
+  <link rel="prev" href="https://candoeverything.github.io/2019/hive_table/" />
+  <link rel="next" href="https://candoeverything.github.io/2019/hive_sist/" />
+  <link rel="canonical" href="https://candoeverything.github.io/2019/hive_bucket/" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           Hive分桶与随机抽样 | 首页
+       
+  </title>
+  <meta name="title" content="Hive分桶与随机抽样 | 首页">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  
+  
+ 
+
+<script type="application/ld+json">
+ "@context" : "http://schema.org",
+    "@type" : "BlogPosting",
+    "mainEntityOfPage": {
+         "@type": "WebPage",
+         "@id": "https:\/\/candoeverything.github.io\/"
+    },
+    "articleSection" : "posts",
+    "name" : "Hive分桶与随机抽样",
+    "headline" : "Hive分桶与随机抽样",
+    "description" : "分桶表 分桶是将数据集分解成更容易管理的若干部分小的数据集的另一个技术。 **作用 ** 1：提高查询效率\n2 : 使得取样更加高效。 分桶原理： 对分桶字段进行hash 在对分桶数求余，求余结果就是进入那个桶。 语法 1:创建分桶表 create table if not exists cdl_bucket(id int, name string) clustered by (id ) into 4 buckets;  2：配置参数允许分桶 Set hive.enforce.bucketing=true ( 不设置的话，分桶没有效果) 3：导入数据到分桶表 insert overwrite table cdl_bucket select * from cdl_tmp; 注意：不能使用load装载的方式导入分桶表，不然分桶表无效\n分桶表及其随机抽样 语法： Select * from cdl_bucket tablesample(bucket x out of y on 分桶字段 );\n例子: hive (default)\x26gt; select * from stu_buck tablesample(bucket 1 out of 4 on id); 注意：tablesample是抽样语句，语法：TABLESAMPLE(BUCKET x OUT OF y) 。 y必须是table总bucket数的倍数或者因子。hive根据y的大小，决定抽样的比例。例如，table总共分了4份，当y=2时，抽取(4\x26frasl;2=)2个bucket的数据，当y=8时，抽取(4\x26frasl;8=)1\/2个bucket的数据（即抽取一个桶内的1\/2的数据）。 x表示从哪个bucket开始抽取，如果需要取多个分区，以后的分区号为当前分区号加上y。例如，table总bucket数为4，tablesample(bucket 1 out of 2)，表示总共抽取（4\/2=）2个bucket的数据，抽取第1(x)个和第3(x\x2by)个bucket的数据。 注意：x的值必须小于等于y的值，否则 FAILED: SemanticException [Error 10061]: Numerator should not be bigger than denominator in sample clause for table stu_buck",
+    "inLanguage" : "zk-CN",
+    "author" : "Darren.Chen",
+    "creator" : "Darren.Chen",
+    "publisher": "Darren.Chen",
+    "accountablePerson" : "Darren.Chen",
+    "copyrightHolder" : "Darren.Chen",
+    "copyrightYear" : "2019",
+    "datePublished": "2019-03-14 23:10:32 \x2b0800 CST",
+    "dateModified" : "2019-03-14 23:10:32 \x2b0800 CST",
+    "url" : "https:\/\/candoeverything.github.io\/2019\/hive_bucket\/",
+    "wordCount" : "112",
+    "keywords" : [ "Hadoop","Hive", "首页"]
+}
+</script>
+
+</head>
+
+  
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://candoeverything.github.io/">首页</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">博客</a>
+                
+                <a class="menu-item" href="/categories/" title="">分类</a>
+                
+                <a class="menu-item" href="/tags/" title="">标签</a>
+                
+                <a class="menu-item" href="/about/" title="">关于</a>
+                
+                <a class="menu-item" href="/about/" title="&gt;">&gt;</a>
+                
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://candoeverything.github.io/">首页</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">博客</a>
+                
+                <a class="menu-item" href="/categories/" title="">分类</a>
+                
+                <a class="menu-item" href="/tags/" title="">标签</a>
+                
+                <a class="menu-item" href="/about/" title="">关于</a>
+                
+                <a class="menu-item" href="/about/" title="&gt;">&gt;</a>
+                
+        </div>
+    </div>
+</nav>
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp" itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">Hive分桶与随机抽样</h1>
+        <div class="post-meta">
+                Written by <a itemprop="name" href="https://candoeverything.github.io/" rel="author">Darren.Chen</a> with ♥ 
+                <span class="post-time">
+                on <time datetime=2019-03-14 itemprop="datePublished">March 14, 2019</time>
+                </span>
+                in
+                <i class="iconfont icon-folder"></i>
+                <span class="post-category">
+                        <a href="https://candoeverything.github.io/categories/hive/"> Hive </a>
+                        
+                </span>
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          
+
+<h1 id="分桶表">分桶表</h1>
+
+<p>分桶是将数据集分解成更容易管理的若干部分小的数据集的另一个技术。
+**作用 **
+1：提高查询效率<br />
+2 :  使得取样更加高效。
+<strong>分桶原理：</strong>
+对分桶字段进行hash 在对分桶数求余，求余结果就是进入那个桶。
+<strong>语法</strong>
+1:创建分桶表
+<code>create table if not exists cdl_bucket(id int, name string) clustered by (id ) into 4 buckets;
+</code>
+2：配置参数允许分桶
+<code>Set hive.enforce.bucketing=true</code> <font size=3 color=#D2691E>( 不设置的话，分桶没有效果)</font>
+3：导入数据到分桶表
+<code>insert overwrite table cdl_bucket select * from cdl_tmp;</code>
+<font size=3 color=red>注意：不能使用load装载的方式导入分桶表，不然分桶表无效</font></p>
+
+<h1 id="分桶表及其随机抽样">分桶表及其随机抽样</h1>
+
+<p>语法：
+<code>Select * from cdl_bucket tablesample(bucket x out of y on 分桶字段 );</code></p>
+
+<p>例子:
+<code>hive (default)&gt; select * from stu_buck tablesample(bucket 1 out of 4 on id);</code>
+<font size=3 color=red>
+注意：tablesample是抽样语句，语法：TABLESAMPLE(BUCKET x OUT OF y) 。
+<strong>y</strong>必须是table总bucket数的倍数或者因子。hive根据y的大小，决定抽样的比例。例如，table总共分了4份，当y=2时，抽取(<sup>4</sup>&frasl;<sub>2</sub>=)2个bucket的数据，当y=8时，抽取(<sup>4</sup>&frasl;<sub>8</sub>=)1/2个bucket的数据（即抽取一个桶内的1/2的数据）。
+<strong>x</strong>表示从哪个bucket开始抽取，如果需要取多个分区，以后的分区号为当前分区号加上y。例如，table总bucket数为4，tablesample(bucket 1 out of 2)，表示总共抽取（4/2=）2个bucket的数据，抽取第1(x)个和第3(x+y)个bucket的数据。
+注意：x的值必须小于等于y的值，否则
+FAILED: SemanticException [Error 10061]: Numerator should not be bigger than denominator in sample clause for table stu_buck</font></p>
+
+<pre><code>也可以通过制定抽样百分之几
+hive (default)&gt; select * from stu_buck tablesample(50 percent);
+抽取50%的数据
+</code></pre>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>Darren.Chen </span>
+                </p>
+            
+           
+             
+            <p class="copyright-item">
+                    <span>Link:</span>
+                    <a href=https://candoeverything.github.io/2019/hive_bucket/>https://candoeverything.github.io/2019/hive_bucket/</span>
+            </p>
+            
+             
+            <p class="copyright-item lincese">
+                本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+            <section>
+            <i class="iconfont icon-tag"></i>Tag(s): 
+            
+            <span class="tag"><a href="https://candoeverything.github.io/tags/hadoop/">
+                    #Hadoop</a></span>
+            
+            <span class="tag"><a href="https://candoeverything.github.io/tags/hive/">
+                    #Hive</a></span>
+            
+            </section>
+        
+        <section>
+                <a href="javascript:window.history.back();">back</a></span> · 
+                <span><a href="https://candoeverything.github.io/">home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="https://candoeverything.github.io/2019/hive_table/" class="prev" rel="prev" title="Hive：内部表与外部表区别&#34;"><i class="iconfont icon-left"></i>&nbsp;Hive：内部表与外部表区别&#34;</a>
+         
+        
+        <a href="https://candoeverything.github.io/2019/hive_sist/" class="next" rel="next" title="Hive常用的参数配置">Hive常用的参数配置&nbsp;<i class="iconfont icon-right"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+                 
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2019 - 2019</span>
+        
+        <span class="with-love">
+    	 <i class="iconfont icon-love"></i> 
+         </span>
+         
+            <span class="author" itemprop="copyrightHolder"><a href="https://candoeverything.github.io/">Darren.Chen</a> | </span> 
+         
+
+         
+		  <span>Powered by <a href="https://gohugo.io/" target="_blank" rel="external nofollow">Hugo</a> & <a href="https://github.com/liuzc/leaveit" target="_blank" rel="external nofollow">LeaveIt</a></span> 
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+     </div>
+  </body>
+</html>
